@@ -2,6 +2,73 @@ const SESSION_STORAGE_KEY = 'eml-editor-session';
 const NAMED_SESSIONS_STORAGE_KEY = 'eml-editor-named-sessions';
 const SESSION_VERSION = 1;
 
+const DB_NAME = 'eml-editor-db';
+const DB_VERSION = 1;
+
+let dbPromise = null;
+
+function getDB() {
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('keyval')) {
+          db.createObjectStore('keyval');
+        }
+      };
+    });
+  }
+  return dbPromise;
+}
+
+async function idbGet(key) {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('keyval', 'readonly');
+    const store = tx.objectStore('keyval');
+    const request = store.get(key);
+    request.onsuccess = () => {
+      let result = request.result;
+      if (result === undefined) {
+        try {
+          const lsItem = window.localStorage.getItem(key);
+          if (lsItem) {
+            result = lsItem;
+            idbSet(key, lsItem).catch(() => {});
+          }
+        } catch (e) {}
+      }
+      resolve(result);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function idbSet(key, val) {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('keyval', 'readwrite');
+    const store = tx.objectStore('keyval');
+    const request = store.put(val, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbDel(key) {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('keyval', 'readwrite');
+    const store = tx.objectStore('keyval');
+    const request = store.delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 const defaultMeta = {
   subject: '',
   from: '',
@@ -9,30 +76,6 @@ const defaultMeta = {
   cc: '',
   bcc: '',
 };
-
-const DATA_URL_PLACEHOLDER = '[removed-inline-image-for-browser-storage]';
-
-function isDataUrl(value) {
-  return typeof value === 'string' && value.startsWith('data:');
-}
-
-function sanitizeValueForBrowserStorage(value) {
-  if (Array.isArray(value)) {
-    return value.map(sanitizeValueForBrowserStorage);
-  }
-
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, nestedValue]) => [key, sanitizeValueForBrowserStorage(nestedValue)])
-    );
-  }
-
-  if (isDataUrl(value)) {
-    return DATA_URL_PLACEHOLDER;
-  }
-
-  return value;
-}
 
 function cloneElement(element) {
   return {
@@ -80,10 +123,6 @@ export function buildEditorSession(state) {
   };
 }
 
-function buildBrowserStorageSession(state) {
-  return sanitizeValueForBrowserStorage(buildEditorSession(state));
-}
-
 export function restoreEditorSession(session) {
   if (!session || typeof session !== 'object') {
     throw new Error('Invalid session data.');
@@ -102,9 +141,9 @@ export function restoreEditorSession(session) {
   };
 }
 
-export function loadSessionFromStorage() {
+export async function loadSessionFromStorage() {
   try {
-    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    const raw = await idbGet(SESSION_STORAGE_KEY);
     if (!raw) return null;
     return restoreEditorSession(JSON.parse(raw));
   } catch {
@@ -112,11 +151,11 @@ export function loadSessionFromStorage() {
   }
 }
 
-export function saveSessionToStorage(state) {
-  const session = buildBrowserStorageSession(state);
+export async function saveSessionToStorage(state) {
+  const session = buildEditorSession(state);
 
   try {
-    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    await idbSet(SESSION_STORAGE_KEY, JSON.stringify(session));
     return { ok: true, session };
   } catch (error) {
     return {
@@ -128,13 +167,17 @@ export function saveSessionToStorage(state) {
   }
 }
 
-export function clearSessionFromStorage() {
-  window.localStorage.removeItem(SESSION_STORAGE_KEY);
+export async function clearSessionFromStorage() {
+  try {
+    await idbDel(SESSION_STORAGE_KEY);
+  } catch (e) {
+    // ignore
+  }
 }
 
-export function getStoredDraftSummary() {
+export async function getStoredDraftSummary() {
   try {
-    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    const raw = await idbGet(SESSION_STORAGE_KEY);
     if (!raw) return null;
 
     const session = JSON.parse(raw);
@@ -151,9 +194,9 @@ export function getStoredDraftSummary() {
   }
 }
 
-function getRawNamedSessions() {
+async function getRawNamedSessions() {
   try {
-    const raw = window.localStorage.getItem(NAMED_SESSIONS_STORAGE_KEY);
+    const raw = await idbGet(NAMED_SESSIONS_STORAGE_KEY);
     if (!raw) return [];
     const sessions = JSON.parse(raw);
     return Array.isArray(sessions) ? sessions : [];
@@ -162,12 +205,13 @@ function getRawNamedSessions() {
   }
 }
 
-function setRawNamedSessions(sessions) {
-  window.localStorage.setItem(NAMED_SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+async function setRawNamedSessions(sessions) {
+  await idbSet(NAMED_SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
 }
 
-export function listNamedSessions() {
-  return getRawNamedSessions()
+export async function listNamedSessions() {
+  const sessions = await getRawNamedSessions();
+  return sessions
     .filter((entry) => entry && typeof entry === 'object' && entry.id && entry.name && entry.session)
     .map((entry) => ({
       id: entry.id,
@@ -179,14 +223,14 @@ export function listNamedSessions() {
     .sort((a, b) => new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime());
 }
 
-export function saveNamedSession(name, state) {
+export async function saveNamedSession(name, state) {
   const trimmedName = `${name || ''}`.trim();
   if (!trimmedName) {
     throw new Error('Session name is required.');
   }
 
-  const session = buildBrowserStorageSession(state);
-  const sessions = getRawNamedSessions();
+  const session = buildEditorSession(state);
+  const sessions = await getRawNamedSessions();
   const existing = sessions.find((entry) => entry.name.toLowerCase() === trimmedName.toLowerCase());
   const nextEntry = {
     id: existing?.id || `session-${Date.now()}`,
@@ -199,21 +243,22 @@ export function saveNamedSession(name, state) {
     ? sessions.map((entry) => (entry.id === existing.id ? nextEntry : entry))
     : [nextEntry, ...sessions];
 
-  setRawNamedSessions(nextSessions);
+  await setRawNamedSessions(nextSessions);
   return nextEntry;
 }
 
-export function loadNamedSession(id) {
-  const session = getRawNamedSessions().find((entry) => entry.id === id);
+export async function loadNamedSession(id) {
+  const sessions = await getRawNamedSessions();
+  const session = sessions.find((entry) => entry.id === id);
   if (!session) {
     throw new Error('Saved session not found.');
   }
   return restoreEditorSession(session.session);
 }
 
-export function deleteNamedSession(id) {
-  const sessions = getRawNamedSessions();
-  setRawNamedSessions(sessions.filter((entry) => entry.id !== id));
+export async function deleteNamedSession(id) {
+  const sessions = await getRawNamedSessions();
+  await setRawNamedSessions(sessions.filter((entry) => entry.id !== id));
 }
 
 export function downloadSessionFile(state) {

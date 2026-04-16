@@ -70,7 +70,7 @@ function App() {
   const selectedElement = elements.find(e => e.id === selectedId) || null;
 
   const refreshSavedSessions = useCallback(() => {
-    setSavedSessions(listNamedSessions());
+    listNamedSessions().then(setSavedSessions);
   }, []);
 
   const applyRestoredSession = useCallback((restoredSession) => {
@@ -83,47 +83,58 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const storedDraftSummary = getStoredDraftSummary();
-    setDraftSummary(storedDraftSummary);
-    refreshSavedSessions();
+    getStoredDraftSummary().then(storedDraftSummary => {
+      setDraftSummary(storedDraftSummary);
+      refreshSavedSessions();
 
-    if (storedDraftSummary) {
-      setShowRestorePrompt(true);
-      return;
-    }
+      if (storedDraftSummary) {
+        setShowRestorePrompt(true);
+        return;
+      }
 
-    setSessionRestored(true);
+      setSessionRestored(true);
+    });
   }, [refreshSavedSessions]);
 
   useEffect(() => {
     if (!sessionRestored) return;
 
-    const savedSession = saveSessionToStorage({
+    saveSessionToStorage({
       elements,
       selectedId,
       emailMeta,
       leftPanelCollapsed,
       rightPanelCollapsed,
-    });
+    }).then(savedSession => {
+      if (!savedSession.ok) {
+        setAutosaveStatus(savedSession.reason === 'quota-exceeded' ? 'Autosave failed: browser storage full' : 'Autosave failed');
+        return;
+      }
 
-    if (!savedSession.ok) {
-      setAutosaveStatus(savedSession.reason === 'quota-exceeded' ? 'Autosave failed: browser storage full' : 'Autosave failed');
-      return;
-    }
-
-    setDraftSummary({
-      subject: savedSession.session.emailMeta.subject || 'Untitled Email',
-      elementCount: savedSession.session.elements.length,
-      savedAt: savedSession.session.savedAt,
+      setDraftSummary({
+        subject: savedSession.session.emailMeta.subject || 'Untitled Email',
+        elementCount: savedSession.session.elements.length,
+        savedAt: savedSession.session.savedAt,
+      });
+      setAutosaveStatus(`Saved ${formatSavedAt(savedSession.session.savedAt)}`);
     });
-    setAutosaveStatus(`Saved ${formatSavedAt(savedSession.session.savedAt)}`);
   }, [elements, selectedId, emailMeta, leftPanelCollapsed, rightPanelCollapsed, sessionRestored]);
 
   const handleAdd = useCallback((template) => {
     const el = { ...template, id: `el-${nextId++}` };
-    setElements(prev => [...prev, el]);
+    setElements(prev => {
+      if (selectedId) {
+        const idx = prev.findIndex(e => e.id === selectedId);
+        if (idx !== -1) {
+          const next = [...prev];
+          next.splice(idx + 1, 0, el);
+          return next;
+        }
+      }
+      return [...prev, el];
+    });
     setSelectedId(el.id);
-  }, []);
+  }, [selectedId]);
 
   const handleSelect = useCallback((id) => {
     setSelectedId(id);
@@ -172,8 +183,8 @@ function App() {
     sessionInputRef.current?.click();
   };
 
-  const handleRestoreDraft = () => {
-    const restoredSession = loadSessionFromStorage();
+  const handleRestoreDraft = async () => {
+    const restoredSession = await loadSessionFromStorage();
     if (!restoredSession) {
       setShowRestorePrompt(false);
       setSessionRestored(true);
@@ -186,8 +197,8 @@ function App() {
     setSessionRestored(true);
   };
 
-  const handleDismissDraft = () => {
-    clearSessionFromStorage();
+  const handleDismissDraft = async () => {
+    await clearSessionFromStorage();
     setDraftSummary(null);
     setShowRestorePrompt(false);
     setAutosaveStatus('Autosave ready');
@@ -243,12 +254,12 @@ function App() {
     });
   };
 
-  const handleSaveNamedSession = () => {
+  const handleSaveNamedSession = async () => {
     const fallbackName = emailMeta.subject?.trim() || `Session ${new Date().toLocaleString()}`;
     const targetName = saveSessionName.trim() || fallbackName;
 
     try {
-      saveNamedSession(targetName, {
+      await saveNamedSession(targetName, {
         elements,
         selectedId,
         emailMeta,
@@ -257,15 +268,15 @@ function App() {
       });
       setSaveSessionName(targetName);
       refreshSavedSessions();
-      setAutosaveStatus(`Saved session \"${targetName}\"`);
+      setAutosaveStatus(`Saved session "${targetName}"`);
     } catch {
       window.alert('Unable to save this named session.');
     }
   };
 
-  const handleLoadNamedSession = (id) => {
+  const handleLoadNamedSession = async (id) => {
     try {
-      const restoredSession = loadNamedSession(id);
+      const restoredSession = await loadNamedSession(id);
       applyRestoredSession(restoredSession);
       setAutosaveStatus('Loaded saved session');
     } catch {
@@ -273,8 +284,8 @@ function App() {
     }
   };
 
-  const handleDeleteNamedSession = (id) => {
-    deleteNamedSession(id);
+  const handleDeleteNamedSession = async (id) => {
+    await deleteNamedSession(id);
     refreshSavedSessions();
   };
 

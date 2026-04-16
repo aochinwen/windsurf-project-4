@@ -113,6 +113,7 @@ function ToggleBtn({ active, onClick, title, children }) {
 function RichTextInput({ fieldKey, props, onChangeMulti, rows = 3 }) {
   const val   = props[fieldKey] ?? '';
   const font  = props[`${fieldKey}Font`]   ?? 'sans-serif';
+  const fontSize = props[`${fieldKey}FontSize`] ?? '';
   const bold  = props[`${fieldKey}Bold`]   ?? false;
   const italic = props[`${fieldKey}Italic`] ?? false;
   const underline = props[`${fieldKey}Underline`] ?? false;
@@ -125,14 +126,35 @@ function RichTextInput({ fieldKey, props, onChangeMulti, rows = 3 }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      {/* Font family */}
-      <select
-        value={font}
-        onChange={e => set('Font', e.target.value)}
-        className="w-full border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-400"
-      >
-        {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-      </select>
+      {/* Font family and size */}
+      <div className="flex gap-2">
+        <select
+          value={font}
+          onChange={e => set('Font', e.target.value)}
+          className="flex-1 border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-400"
+        >
+          {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+        </select>
+        <select
+          value={fontSize}
+          onChange={e => set('FontSize', e.target.value)}
+          className="w-20 border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-400"
+        >
+          <option value="">Size</option>
+          <option value="12px">12px</option>
+          <option value="14px">14px</option>
+          <option value="16px">16px</option>
+          <option value="18px">18px</option>
+          <option value="20px">20px</option>
+          <option value="24px">24px</option>
+          <option value="28px">28px</option>
+          <option value="32px">32px</option>
+          <option value="36px">36px</option>
+          <option value="48px">48px</option>
+          <option value="60px">60px</option>
+          <option value="72px">72px</option>
+        </select>
+      </div>
 
       <ColorInput value={renderColor} onChange={v => set('Color', v)} />
 
@@ -160,6 +182,7 @@ function RichTextInput({ fieldKey, props, onChangeMulti, rows = 3 }) {
         rows={rows}
         style={{
           fontFamily: font,
+          fontSize: fontSize || 'inherit',
           fontWeight: bold ? 'bold' : 'normal',
           fontStyle:  italic ? 'italic' : 'normal',
           textDecoration: [underline && 'underline', strike && 'line-through'].filter(Boolean).join(' ') || 'none',
@@ -427,6 +450,7 @@ const fieldConfig = {
   ],
   'image-single': [
     { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'caption', label: 'Caption', type: 'text' },
     { key: 'alt', label: 'Alt Text', type: 'text' },
     { key: 'link', label: 'Link URL', type: 'text' },
     { key: 'imageWidth', label: 'Image Width (e.g. 320px or 80%)', type: 'text' },
@@ -438,9 +462,46 @@ const fieldConfig = {
     { key: 'image1Url', label: 'Image 1 URL', type: 'image' },
     { key: 'alt1', label: 'Image 1 Alt', type: 'text' },
     { key: 'link1', label: 'Image 1 Link', type: 'text' },
+    { key: 'caption1', label: 'Image 1 Caption', type: 'text' },
+    { key: 'image1Width', label: 'Image 1 Size (e.g. 100%)', type: 'text' },
+    { key: 'align1', label: 'Image 1 Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
     { key: 'image2Url', label: 'Image 2 URL', type: 'image' },
     { key: 'alt2', label: 'Image 2 Alt', type: 'text' },
     { key: 'link2', label: 'Image 2 Link', type: 'text' },
+    { key: 'caption2', label: 'Image 2 Caption', type: 'text' },
+    { key: 'image2Width', label: 'Image 2 Size (e.g. 100%)', type: 'text' },
+    { key: 'align2', label: 'Image 2 Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'image-three-col': [
+    { key: 'image1Url', label: 'Image 1 URL', type: 'image' },
+    { key: 'link1', label: 'Image 1 Link', type: 'text' },
+    { key: 'caption1', label: 'Image 1 Caption', type: 'text' },
+    { key: 'image1Width', label: 'Image 1 Size (e.g. 100%)', type: 'text' },
+    { key: 'align1', label: 'Image 1 Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+    { key: 'image2Url', label: 'Image 2 URL', type: 'image' },
+    { key: 'link2', label: 'Image 2 Link', type: 'text' },
+    { key: 'caption2', label: 'Image 2 Caption', type: 'text' },
+    { key: 'image2Width', label: 'Image 2 Size (e.g. 100%)', type: 'text' },
+    { key: 'align2', label: 'Image 2 Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+    { key: 'image3Url', label: 'Image 3 URL', type: 'image' },
+    { key: 'link3', label: 'Image 3 Link', type: 'text' },
+    { key: 'caption3', label: 'Image 3 Caption', type: 'text' },
+    { key: 'image3Width', label: 'Image 3 Size (e.g. 100%)', type: 'text' },
+    { key: 'align3', label: 'Image 3 Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'image-grid-2x2': [
+    { key: 'images', label: 'Images', type: 'slides', fields: [{ key: 'url', label: 'Image URL' }, { key: 'link', label: 'Link' }, { key: 'caption', label: 'Caption' }] },
+    { key: 'imageWidth', label: 'Image Width (e.g. 100%)', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'image-grid-3-horizontal': [
+    { key: 'images', label: 'Images', type: 'slides', fields: [{ key: 'url', label: 'Image URL' }, { key: 'link', label: 'Link' }, { key: 'caption', label: 'Caption' }] },
+    { key: 'imageWidth', label: 'Image Width (e.g. 100%)', type: 'text' },
     { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
     { key: 'backgroundColor', label: 'Background Color', type: 'color' },
   ],
@@ -455,6 +516,7 @@ const fieldConfig = {
   ],
   'image-panorama': [
     { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'caption', label: 'Caption', type: 'text' },
     { key: 'alt', label: 'Alt Text', type: 'text' },
     { key: 'link', label: 'Link URL', type: 'text' },
     { key: 'imageWidth', label: 'Image Width (e.g. 600px or 100%)', type: 'text' },
@@ -472,6 +534,7 @@ const fieldConfig = {
   ],
   'image-left-text': [
     { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'caption', label: 'Image Caption', type: 'text' },
     { key: 'imageColumnWidth', label: 'Image Column Width (e.g. 42%)', type: 'text' },
     { key: 'tag', label: 'Tag', type: 'text' },
     { key: 'title', label: 'Title', type: 'richtext' },
@@ -482,6 +545,7 @@ const fieldConfig = {
   ],
   'image-right-text': [
     { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'caption', label: 'Image Caption', type: 'text' },
     { key: 'imageColumnWidth', label: 'Image Column Width (e.g. 42%)', type: 'text' },
     { key: 'tag', label: 'Tag', type: 'text' },
     { key: 'title', label: 'Title', type: 'richtext' },
@@ -492,6 +556,7 @@ const fieldConfig = {
   ],
   'image-big-button': [
     { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'caption', label: 'Caption', type: 'text' },
     { key: 'imageWidth', label: 'Image Width (e.g. 420px or 100%)', type: 'text' },
     { key: 'tag', label: 'Tag', type: 'text' },
     { key: 'tagColor', label: 'Tag Color', type: 'color' },
@@ -504,6 +569,7 @@ const fieldConfig = {
   ],
   'image-big-col': [
     { key: 'mainImage', label: 'Main Image URL', type: 'image' },
+    { key: 'caption', label: 'Image Caption', type: 'text' },
     { key: 'mainColumnWidth', label: 'Main Column Width (e.g. 48%)', type: 'text' },
     { key: 'mainTag', label: 'Main Tag', type: 'text' },
     { key: 'mainTitle', label: 'Main Title', type: 'text' },
@@ -514,6 +580,7 @@ const fieldConfig = {
   ],
   'image-video': [
     { key: 'thumbnailUrl', label: 'Thumbnail URL', type: 'image' },
+    { key: 'caption', label: 'Thumbnail Caption', type: 'text' },
     { key: 'imageWidth', label: 'Thumbnail Width (e.g. 420px or 100%)', type: 'text' },
     { key: 'videoLink', label: 'Video Link', type: 'text' },
     { key: 'title', label: 'Title', type: 'text' },
@@ -760,6 +827,180 @@ const fieldConfig = {
     { key: 'backgroundColor', label: 'Background', type: 'color' },
     { key: 'textColor', label: 'Text Color', type: 'color' },
   ],
+  // ── AUTO GENERATED MISSING ELEMENTS ──
+  'header-dark': [
+    { key: 'logoUrl', label: 'Logo Url', type: 'image' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'tagline', label: 'Tagline', type: 'text' },
+  ],
+  'header-logo-tagline': [
+    { key: 'logoUrl', label: 'Logo Url', type: 'image' },
+    { key: 'tagline', label: 'Tagline', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'align', label: 'Align', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'header-gradient': [
+    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'gradientFrom', label: 'Gradient From', type: 'color' },
+    { key: 'gradientTo', label: 'Gradient To', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'header-announcement': [
+    { key: 'message', label: 'Message', type: 'textarea' },
+    { key: 'linkLabel', label: 'Link Label', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'hero-split-left': [
+    { key: 'ctaLabel', label: 'Cta Label', type: 'text' },
+    { key: 'ctaLink', label: 'Cta Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'hero-video': [
+    { key: 'thumbnailUrl', label: 'Thumbnail Url', type: 'image' },
+    { key: 'videoLink', label: 'Video Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'hero-centered-text': [
+    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'ctaLabel', label: 'Cta Label', type: 'text' },
+    { key: 'ctaLink', label: 'Cta Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'content-update': [
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'tagColor', label: 'Tag Color', type: 'color' },
+    { key: 'readMoreLink', label: 'Read More Link', type: 'text' },
+    { key: 'readMoreLabel', label: 'Read More Label', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'content-blog-two-col': [
+    { key: 'articles', label: 'Articles', type: 'slides', fields: [{ key: 'title', label: 'Title' }, { key: 'date', label: 'Date' }, { key: 'body', label: 'Body' }, { key: 'link', label: 'Link' }, { key: 'imageUrl', label: 'Image URL' }] },
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'content-checklist': [
+    { key: 'items', label: 'Items', type: 'stringlist' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'content-divider': [
+    { key: 'type', label: 'Type', type: 'text' },
+    { key: 'color', label: 'Color', type: 'color' },
+    { key: 'thickness', label: 'Thickness', type: 'text' },
+    { key: 'marginTop', label: 'Margin Top', type: 'text' },
+    { key: 'marginBottom', label: 'Margin Bottom', type: 'text' },
+  ],
+  'content-spacer': [
+    { key: 'height', label: 'Height', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'content-three-col': [
+    { key: 'cols', label: 'Cols', type: 'slides', fields: [{ key: 'title', label: 'Title' }, { key: 'body', label: 'Body' }] },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'content-intro': [
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'tagColor', label: 'Tag Color', type: 'color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'align', label: 'Align', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'cta-image-bg': [
+    { key: 'overlayColor', label: 'Overlay Color', type: 'color' },
+    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'cta-countdown': [
+    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'timerLabel', label: 'Timer Label', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'buttonColor', label: 'Button Color', type: 'color' },
+    { key: 'buttonTextColor', label: 'Button Text Color', type: 'color' },
+  ],
+  'cta-referral': [
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'buttonColor', label: 'Button Color', type: 'color' },
+    { key: 'buttonTextColor', label: 'Button Text Color', type: 'color' },
+  ],
+  'card-feature': [
+    { key: 'cards', label: 'Cards', type: 'slides', fields: [{ key: 'icon', label: 'Icon' }, { key: 'title', label: 'Title' }, { key: 'body', label: 'Body' }] },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'card-profile': [
+    { key: 'avatarUrl', label: 'Avatar Url', type: 'image' },
+    { key: 'bio', label: 'Bio', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'survey-rating': [
+    { key: 'question', label: 'Question', type: 'text' },
+    { key: 'stars', label: 'Stars', type: 'number' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+  ],
+  'survey-nps': [
+    { key: 'question', label: 'Question', type: 'text' },
+    { key: 'lowLabel', label: 'Low Label', type: 'text' },
+    { key: 'highLabel', label: 'High Label', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'survey-choice': [
+    { key: 'question', label: 'Question', type: 'text' },
+    { key: 'choices', label: 'Choices', type: 'stringlist' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+  ],
+  'survey-yesno': [
+    { key: 'question', label: 'Question', type: 'text' },
+    { key: 'yesLink', label: 'Yes Link', type: 'text' },
+    { key: 'noLink', label: 'No Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'carousel-basic': [
+    { key: 'slides', label: 'Slides', type: 'slides', fields: [{ key: 'title', label: 'Title' }, { key: 'imageUrl', label: 'Image URL' }, { key: 'link', label: 'Link' }, { key: 'price', label: 'Price' }] },
+  ],
+  'carousel-product': [
+    { key: 'slides', label: 'Slides', type: 'slides', fields: [{ key: 'title', label: 'Title' }, { key: 'imageUrl', label: 'Image URL' }, { key: 'link', label: 'Link' }, { key: 'price', label: 'Price' }] },
+  ],
+  'footer-simple': [
+    { key: 'companyName', label: 'Company Name', type: 'text' },
+    { key: 'address', label: 'Address', type: 'text' },
+    { key: 'unsubscribeLink', label: 'Unsubscribe Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'footer-social': [
+    { key: 'companyName', label: 'Company Name', type: 'text' },
+    { key: 'address', label: 'Address', type: 'text' },
+    { key: 'socialLinks', label: 'Social Links', type: 'slides', fields: [{ key: 'platform', label: 'Platform' }, { key: 'link', label: 'Link' }, { key: 'icon', label: 'Icon (emoji or url)' }] },
+    { key: 'unsubscribeLink', label: 'Unsubscribe Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'footer-full': [
+    { key: 'companyName', label: 'Company Name', type: 'text' },
+    { key: 'address', label: 'Address', type: 'text' },
+    { key: 'columns', label: 'Columns', type: 'slides', fields: [{ key: 'title', label: 'Title' }, { key: 'links', label: 'Links (comma separated)' }] },
+    { key: 'links', label: 'Links', type: 'text' },
+    { key: 'unsubscribeLink', label: 'Unsubscribe Link', type: 'text' },
+    { key: 'privacyLink', label: 'Privacy Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+
   'raw-html': [
     { key: 'html', label: 'HTML', type: 'textarea', rows: 16 },
   ],

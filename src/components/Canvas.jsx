@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -36,6 +36,7 @@ function SortableElement({ element, isSelected, onSelect, onDelete, onDuplicate,
 
   return (
     <div
+      id={`element-${element.id}`}
       ref={setNodeRef}
       style={style}
       className={`relative group transition-all ${
@@ -114,15 +115,50 @@ export default function Canvas({ elements, selectedId, onSelect, onReorder, onDe
     }
   };
 
+  const scrollToElement = (id) => {
+    setTimeout(() => {
+      document.getElementById(`element-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  };
+
   const handleMoveUp = (index) => {
     if (index === 0) return;
+    const id = elements[index].id;
     onReorder(arrayMove(elements, index, index - 1));
+    scrollToElement(id);
   };
 
   const handleMoveDown = (index) => {
     if (index === elements.length - 1) return;
+    const id = elements[index].id;
     onReorder(arrayMove(elements, index, index + 1));
+    scrollToElement(id);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an input/textarea/select
+      const activeTag = document.activeElement?.tagName?.toUpperCase();
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+      if (document.activeElement?.isContentEditable) return;
+
+      if (!selectedId) return;
+
+      const idx = elements.findIndex(el => el.id === selectedId);
+      if (idx === -1) return;
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleMoveUp(idx);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleMoveDown(idx);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [elements, selectedId, onReorder]);
 
   if (elements.length === 0) {
     return (

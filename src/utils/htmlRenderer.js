@@ -1,14 +1,16 @@
 function textStyle(props, key, extras = '') {
-  const font   = props[`${key}Font`]      || 'sans-serif';
-  const bold   = props[`${key}Bold`]      ? 'bold'   : 'normal';
-  const italic = props[`${key}Italic`]    ? 'italic' : 'normal';
-  const align  = props[`${key}Align`]     || 'left';
-  const color  = props[`${key}Color`]     || props.textColor || '';
+  const font     = props[`${key}Font`]      || 'sans-serif';
+  const fontSize = props[`${key}FontSize`]  || '';
+  const bold     = props[`${key}Bold`]      ? 'bold'   : 'normal';
+  const italic   = props[`${key}Italic`]    ? 'italic' : 'normal';
+  const align    = props[`${key}Align`]     || 'left';
+  const color    = props[`${key}Color`]     || props.textColor || '';
   const decParts = [];
   if (props[`${key}Underline`]) decParts.push('underline');
   if (props[`${key}Strike`])    decParts.push('line-through');
   const dec = decParts.length ? decParts.join(' ') : 'none';
-  return `font-family:${font};font-weight:${bold};font-style:${italic};text-decoration:${dec};text-align:${align};${color ? `color:${color};mso-color-alt:${color};` : ''}${extras}`;
+  const sizeStyle = fontSize ? `font-size:${fontSize};` : '';
+  return `font-family:${font};${sizeStyle}font-weight:${bold};font-style:${italic};text-decoration:${dec};text-align:${align};${color ? `color:${color};mso-color-alt:${color};` : ''}${extras}`;
 }
 
 function renderOptionalLink(href, content, style) {
@@ -295,17 +297,16 @@ export function renderElementHtml(element) {
     case 'image-single':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props)}">
   <tr><td align="${props.align || 'center'}" style="padding:${getInternalPadding(props, '0')}">
-    ${props.link ? `<a href="${props.link}">` : ''}
-    <img src="${props.imageUrl}" alt="${props.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>
-    ${props.link ? '</a>' : ''}
+    ${props.link ? `<a href="${props.link}">` : ''}<img src="${props.imageUrl}" alt="${props.alt || ''}" style="display:inline-block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.link ? '</a>' : ''}
+    ${props.caption ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}
   </td></tr>
 </table>`;
 
     case 'image-two-col':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props)}">
   <tr>
-    <td width="50%" style="padding:${getInternalPadding(props, '4px')}">${props.link1 ? `<a href="${props.link1}">` : ''}<img src="${props.image1Url}" alt="${props.alt1}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.link1 ? '</a>' : ''}</td>
-    <td width="50%" style="padding:${getInternalPadding(props, '4px')}">${props.link2 ? `<a href="${props.link2}">` : ''}<img src="${props.image2Url}" alt="${props.alt2}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.link2 ? '</a>' : ''}</td>
+    <td width="50%" align="${props.align1 || 'center'}" style="padding:${getInternalPadding(props, '4px')}">${props.link1 ? `<a href="${props.link1}">` : ''}<img src="${props.image1Url}" alt="${props.alt1}" style="display:inline-block;${getImageWidthStyle(props.image1Width, '100%')}"/>${props.link1 ? '</a>' : ''}${props.caption1 ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption1}</p>` : ''}</td>
+    <td width="50%" align="${props.align2 || 'center'}" style="padding:${getInternalPadding(props, '4px')}">${props.link2 ? `<a href="${props.link2}">` : ''}<img src="${props.image2Url}" alt="${props.alt2}" style="display:inline-block;${getImageWidthStyle(props.image2Width, '100%')}"/>${props.link2 ? '</a>' : ''}${props.caption2 ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption2}</p>` : ''}</td>
   </tr>
 </table>`;
 
@@ -611,33 +612,33 @@ export function renderElementHtml(element) {
     case 'image-three-col':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props)}">
   <tr>
-    <td width="33%" style="padding:${getInternalPadding(props, '4px')}">${props.link1 ? `<a href="${props.link1}">` : ''}<img src="${props.image1Url}" alt="${props.alt1}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.link1 ? '</a>' : ''}</td>
-    <td width="33%" style="padding:${getInternalPadding(props, '4px')}">${props.link2 ? `<a href="${props.link2}">` : ''}<img src="${props.image2Url}" alt="${props.alt2}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.link2 ? '</a>' : ''}</td>
-    <td width="34%" style="padding:${getInternalPadding(props, '4px')}">${props.link3 ? `<a href="${props.link3}">` : ''}<img src="${props.image3Url}" alt="${props.alt3}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.link3 ? '</a>' : ''}</td>
+    <td width="33%" align="${props.align1 || 'center'}" style="padding:${getInternalPadding(props, '4px')}">${props.link1 ? `<a href="${props.link1}">` : ''}<img src="${props.image1Url}" alt="${props.alt1}" style="display:inline-block;${getImageWidthStyle(props.image1Width, '100%')}"/>${props.link1 ? '</a>' : ''}${props.caption1 ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption1}</p>` : ''}</td>
+    <td width="33%" align="${props.align2 || 'center'}" style="padding:${getInternalPadding(props, '4px')}">${props.link2 ? `<a href="${props.link2}">` : ''}<img src="${props.image2Url}" alt="${props.alt2}" style="display:inline-block;${getImageWidthStyle(props.image2Width, '100%')}"/>${props.link2 ? '</a>' : ''}${props.caption2 ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption2}</p>` : ''}</td>
+    <td width="34%" align="${props.align3 || 'center'}" style="padding:${getInternalPadding(props, '4px')}">${props.link3 ? `<a href="${props.link3}">` : ''}<img src="${props.image3Url}" alt="${props.alt3}" style="display:inline-block;${getImageWidthStyle(props.image3Width, '100%')}"/>${props.link3 ? '</a>' : ''}${props.caption3 ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption3}</p>` : ''}</td>
   </tr>
 </table>`;
 
     case 'image-grid-2x2':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props)}">
   <tr>
-    ${(props.images || []).slice(0,2).map(img => `<td width="50%" style="padding:${getInternalPadding(props, '3px')}">${img.link ? `<a href="${img.link}">` : ''}<img src="${img.url}" alt="${img.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${img.link ? '</a>' : ''}</td>`).join('')}
+    ${(props.images || []).slice(0,2).map(img => `<td width="50%" align="center" style="padding:${getInternalPadding(props, '3px')}">${img.link ? `<a href="${img.link}">` : ''}<img src="${img.url}" alt="${img.alt || ''}" style="display:inline-block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${img.link ? '</a>' : ''}${img.caption ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${img.caption}</p>` : ''}</td>`).join('')}
   </tr>
   <tr>
-    ${(props.images || []).slice(2,4).map(img => `<td width="50%" style="padding:${getInternalPadding(props, '3px')}">${img.link ? `<a href="${img.link}">` : ''}<img src="${img.url}" alt="${img.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${img.link ? '</a>' : ''}</td>`).join('')}
+    ${(props.images || []).slice(2,4).map(img => `<td width="50%" align="center" style="padding:${getInternalPadding(props, '3px')}">${img.link ? `<a href="${img.link}">` : ''}<img src="${img.url}" alt="${img.alt || ''}" style="display:inline-block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${img.link ? '</a>' : ''}${img.caption ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${img.caption}</p>` : ''}</td>`).join('')}
   </tr>
 </table>`;
 
     case 'image-grid-3-horizontal':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props)}">
   <tr>
-    ${(props.images || []).map(img => `<td width="${Math.floor(100 / (props.images || []).length)}%" style="padding:${getInternalPadding(props, '3px')}">${img.link ? `<a href="${img.link}">` : ''}<img src="${img.url}" alt="${img.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${img.link ? '</a>' : ''}</td>`).join('')}
+    ${(props.images || []).map(img => `<td width="${Math.floor(100 / (props.images || []).length)}%" align="center" style="padding:${getInternalPadding(props, '3px')}">${img.link ? `<a href="${img.link}">` : ''}<img src="${img.url}" alt="${img.alt || ''}" style="display:inline-block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${img.link ? '</a>' : ''}${img.caption ? `<p style="margin:8px 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${img.caption}</p>` : ''}</td>`).join('')}
   </tr>
 </table>`;
 
     case 'image-left-text':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props, props.backgroundColor || '#ffffff')}">
   <tr>
-    <td width="${getSplitColumnWidths(props.imageColumnWidth, '42%', '58%').primary}" style="padding:${getInternalPadding(props, '20px')}"><img src="${props.imageUrl}" alt="${props.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/></td>
+    <td width="${getSplitColumnWidths(props.imageColumnWidth, '42%', '58%').primary}" style="padding:${getInternalPadding(props, '20px')}"><img src="${props.imageUrl}" alt="${props.alt || ''}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.caption ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}</td>
     <td width="${getSplitColumnWidths(props.imageColumnWidth, '42%', '58%').secondary}" style="padding:${getInternalPadding(props, '20px 28px')};vertical-align:middle">
       <span style="display:inline-block;background:#6366f1;color:#fff;font-size:11px;padding:3px 10px;border-radius:999px;font-family:sans-serif;margin-bottom:10px">${props.tag}</span>
       <h2 style="margin:0 0 10px;font-size:20px;color:#111827;${textStyle(props,'title')}">${props.title}</h2>
@@ -656,7 +657,7 @@ export function renderElementHtml(element) {
       <p style="margin:0 0 14px;color:#374151;line-height:1.6;${textStyle(props,'body')}">${props.body}</p>
       ${renderOptionalLink(props.readMoreLink, 'Read more →', 'color:#6366f1;text-decoration:none;font-family:sans-serif;font-weight:600')}
     </td>
-    <td width="${getSplitColumnWidths(props.imageColumnWidth, '58%', '42%').secondary}" style="padding:${getInternalPadding(props, '20px')}"><img src="${props.imageUrl}" alt="${props.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/></td>
+    <td width="${getSplitColumnWidths(props.imageColumnWidth, '58%', '42%').secondary}" style="padding:${getInternalPadding(props, '20px')}"><img src="${props.imageUrl}" alt="${props.alt || ''}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.caption ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}</td>
   </tr>
 </table>`;
 
@@ -664,7 +665,8 @@ export function renderElementHtml(element) {
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props, props.backgroundColor || '#ffffff')}">
   <tr><td style="padding:${getInternalPadding(props, '28px 40px')}">
     <span style="display:inline-block;background:${props.tagColor};color:#fff;font-size:11px;padding:3px 10px;border-radius:999px;font-family:sans-serif;margin-bottom:12px">${props.tag}</span>
-    <img src="${props.imageUrl}" alt="${props.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}margin-bottom:16px"/>
+    <img src="${props.imageUrl}" alt="${props.alt || ''}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}margin-bottom:16px"/>
+    ${props.caption ? `<p style="margin:0 0 16px;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}
     <h2 style="margin:0 0 10px;font-size:22px;color:#111827;${textStyle(props,'title')}">${props.title}</h2>
     <p style="margin:0 0 20px;color:#374151;line-height:1.6;${textStyle(props,'body')}">${props.body}</p>
     <a href="${props.buttonLink}" style="background:#4F46E5;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-family:sans-serif">${props.buttonLabel}</a>
@@ -676,7 +678,8 @@ export function renderElementHtml(element) {
   <tr>
     <td width="${getSplitColumnWidths(props.mainColumnWidth, '48%', '52%').primary}" style="padding:${getInternalPadding(props, '20px')};vertical-align:top">
       <span style="font-size:11px;color:#6366f1;font-family:sans-serif">${props.mainTag}</span>
-      <img src="${props.mainImage}" alt="${props.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}margin:8px 0"/>
+      <img src="${props.mainImage}" alt="${props.alt || ''}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}margin:8px 0"/>
+      ${props.caption ? `<p style="margin:0 0 16px;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}
       <h2 style="margin:0 0 8px;font-size:18px;color:#111827;font-family:sans-serif">${props.mainTitle}</h2>
       <p style="margin:0;color:#374151;font-size:14px;line-height:1.5;font-family:sans-serif">${props.mainBody}</p>
     </td>
@@ -700,9 +703,10 @@ export function renderElementHtml(element) {
     case 'image-video':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props, props.backgroundColor || '#ffffff')}">
   <tr><td style="padding:${getInternalPadding(props, '28px 40px')}">
-    <a href="${props.videoLink}" style="display:block;position:relative">
-      <img src="${props.thumbnailUrl}" alt="${props.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>
+    <a href="${props.videoLink}" style="display:block;position:relative;text-decoration:none">
+      <img src="${props.thumbnailUrl}" alt="${props.alt || ''}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>
     </a>
+    ${props.caption ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}
     <h3 style="margin:12px 0 6px;font-size:18px;color:#111827;font-family:sans-serif">${props.title}</h3>
     <p style="margin:0;color:#374151;font-family:sans-serif">${props.body}</p>
   </td></tr>
@@ -710,10 +714,9 @@ export function renderElementHtml(element) {
 
     case 'image-panorama':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${getOptionalBackground(props)}">
-  <tr><td style="padding:${getInternalPadding(props, '0')}">
-    ${props.link ? `<a href="${props.link}">` : ''}
-    <img src="${props.imageUrl}" alt="${props.alt}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>
-    ${props.link ? '</a>' : ''}
+  <tr><td align="center" style="padding:${getInternalPadding(props, '0')}">
+    ${props.link ? `<a href="${props.link}">` : ''}<img src="${props.imageUrl}" alt="${props.alt || ''}" style="display:inline-block;width:100%"/>${props.link ? '</a>' : ''}
+    ${props.caption ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}
   </td></tr>
 </table>`;
 

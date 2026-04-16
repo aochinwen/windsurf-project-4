@@ -1,0 +1,904 @@
+import { Trash2, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
+
+function Field({ label, children, right }) {
+  return (
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1 gap-2">
+        <label className="block text-xs font-medium text-gray-500">{label}</label>
+        {right}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Input({ value, onChange, type = 'text', placeholder = '' }) {
+  return (
+    <input
+      type={type}
+      value={value ?? ''}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+    />
+  );
+}
+
+function ColorInput({ value, onChange }) {
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="color"
+        value={value ?? '#000000'}
+        onChange={e => onChange(e.target.value)}
+        className="w-8 h-8 rounded border border-gray-200 cursor-pointer p-0.5"
+      />
+      <Input value={value} onChange={onChange} placeholder="#000000" />
+    </div>
+  );
+}
+
+function Textarea({ value, onChange, rows = 3 }) {
+  return (
+    <textarea
+      value={value ?? ''}
+      onChange={e => onChange(e.target.value)}
+      rows={rows}
+      className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+    />
+  );
+}
+
+function Select({ value, onChange, options }) {
+  return (
+    <select
+      value={value ?? ''}
+      onChange={e => onChange(e.target.value)}
+      className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+    >
+      {options.map(o => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  );
+}
+
+function Checkbox({ value, onChange, label = 'Enabled' }) {
+  return (
+    <label className="inline-flex items-center gap-2 text-sm text-gray-700 select-none">
+      <input
+        type="checkbox"
+        checked={!!value}
+        onChange={e => onChange(e.target.checked)}
+        className="w-4 h-4 accent-indigo-600"
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+const FONTS = [
+  { value: 'sans-serif',            label: 'Default (Sans)' },
+  { value: 'Arial, sans-serif',     label: 'Arial' },
+  { value: "'Helvetica Neue', Helvetica, sans-serif", label: 'Helvetica' },
+  { value: 'Georgia, serif',        label: 'Georgia' },
+  { value: "'Times New Roman', Times, serif", label: 'Times New Roman' },
+  { value: "'Courier New', Courier, monospace", label: 'Courier New' },
+  { value: 'Verdana, sans-serif',   label: 'Verdana' },
+  { value: 'Trebuchet MS, sans-serif', label: 'Trebuchet MS' },
+  { value: "'Futura', Trebuchet MS, sans-serif", label: 'Futura' },
+  { value: "'Gill Sans', Optima, sans-serif", label: 'Gill Sans' },
+  { value: "'Palatino Linotype', Palatino, serif", label: 'Palatino' },
+  { value: 'Tahoma, sans-serif',    label: 'Tahoma' },
+  { value: 'Impact, Charcoal, sans-serif', label: 'Impact' },
+];
+
+function ToggleBtn({ active, onClick, title, children }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      className={`w-7 h-7 flex items-center justify-center rounded text-xs font-semibold border transition-colors select-none
+        ${active
+          ? 'bg-indigo-600 text-white border-indigo-600'
+          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function RichTextInput({ fieldKey, props, onChangeMulti, rows = 3 }) {
+  const val   = props[fieldKey] ?? '';
+  const font  = props[`${fieldKey}Font`]   ?? 'sans-serif';
+  const bold  = props[`${fieldKey}Bold`]   ?? false;
+  const italic = props[`${fieldKey}Italic`] ?? false;
+  const underline = props[`${fieldKey}Underline`] ?? false;
+  const strike = props[`${fieldKey}Strike`] ?? false;
+  const align = props[`${fieldKey}Align`]  ?? 'left';
+  const renderColor = props[`${fieldKey}Color`] ?? props.textColor ?? '#111827';
+
+  const toggle = (key, current) => onChangeMulti({ [`${fieldKey}${key}`]: !current });
+  const set    = (key, v)       => onChangeMulti({ [`${fieldKey}${key}`]: v });
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {/* Font family */}
+      <select
+        value={font}
+        onChange={e => set('Font', e.target.value)}
+        className="w-full border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-400"
+      >
+        {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+      </select>
+
+      <ColorInput value={renderColor} onChange={v => set('Color', v)} />
+
+      {/* Style + align toolbar */}
+      <div className="flex items-center gap-1 flex-wrap">
+        <ToggleBtn active={bold}      onClick={() => toggle('Bold',      bold)}      title="Bold"><b>B</b></ToggleBtn>
+        <ToggleBtn active={italic}    onClick={() => toggle('Italic',    italic)}    title="Italic"><i>I</i></ToggleBtn>
+        <ToggleBtn active={underline} onClick={() => toggle('Underline', underline)} title="Underline"><span style={{textDecoration:'underline'}}>U</span></ToggleBtn>
+        <ToggleBtn active={strike}    onClick={() => toggle('Strike',    strike)}    title="Strikethrough"><span style={{textDecoration:'line-through'}}>S</span></ToggleBtn>
+        <div className="w-px h-5 bg-gray-200 mx-0.5" />
+        {['left','center','right','justify'].map(a => (
+          <ToggleBtn key={a} active={align === a} onClick={() => set('Align', a)} title={a.charAt(0).toUpperCase() + a.slice(1)}>
+            {a === 'left'    && <svg width="12" height="12" viewBox="0 0 12 12"><rect x="0" y="1" width="12" height="1.5" fill="currentColor"/><rect x="0" y="4.5" width="8" height="1.5" fill="currentColor"/><rect x="0" y="8" width="10" height="1.5" fill="currentColor"/></svg>}
+            {a === 'center'  && <svg width="12" height="12" viewBox="0 0 12 12"><rect x="0" y="1" width="12" height="1.5" fill="currentColor"/><rect x="2" y="4.5" width="8" height="1.5" fill="currentColor"/><rect x="1" y="8" width="10" height="1.5" fill="currentColor"/></svg>}
+            {a === 'right'   && <svg width="12" height="12" viewBox="0 0 12 12"><rect x="0" y="1" width="12" height="1.5" fill="currentColor"/><rect x="4" y="4.5" width="8" height="1.5" fill="currentColor"/><rect x="2" y="8" width="10" height="1.5" fill="currentColor"/></svg>}
+            {a === 'justify' && <svg width="12" height="12" viewBox="0 0 12 12"><rect x="0" y="1" width="12" height="1.5" fill="currentColor"/><rect x="0" y="4.5" width="12" height="1.5" fill="currentColor"/><rect x="0" y="8" width="12" height="1.5" fill="currentColor"/></svg>}
+          </ToggleBtn>
+        ))}
+      </div>
+
+      {/* Text preview + editor */}
+      <textarea
+        value={val}
+        onChange={e => onChangeMulti({ [fieldKey]: e.target.value })}
+        rows={rows}
+        style={{
+          fontFamily: font,
+          fontWeight: bold ? 'bold' : 'normal',
+          fontStyle:  italic ? 'italic' : 'normal',
+          textDecoration: [underline && 'underline', strike && 'line-through'].filter(Boolean).join(' ') || 'none',
+          textAlign: align,
+          color: '#000000',
+        }}
+        className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+      />
+    </div>
+  );
+}
+
+function ImageUpload({ value, onChange }) {
+  const handleFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => onChange(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Input value={value} onChange={onChange} placeholder="https://... or choose file below" />
+      <label className="flex items-center gap-2 cursor-pointer w-fit">
+        <span className="text-xs px-2.5 py-1 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors select-none">
+          📁 Choose file…
+        </span>
+        <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      </label>
+      {value && value.startsWith('data:') && (
+        <img src={value} alt="preview" className="w-full max-h-20 object-cover rounded border border-gray-200" />
+      )}
+    </div>
+  );
+}
+
+function StringListEditor({ value, onChange, placeholder = 'Item' }) {
+  const items = value || [];
+  const update = (i, v) => {
+    const next = [...items];
+    next[i] = v;
+    onChange(next);
+  };
+  const add = () => onChange([...items, '']);
+  const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
+  return (
+    <div className="flex flex-col gap-1">
+      {items.map((item, i) => (
+        <div key={i} className="flex gap-1">
+          <input
+            value={item}
+            onChange={e => update(i, e.target.value)}
+            placeholder={`${placeholder} ${i + 1}`}
+            className="flex-1 border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
+          />
+          <button onClick={() => remove(i)} className="text-red-400 hover:text-red-600 px-1">
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+      <button onClick={add} className="text-xs text-indigo-600 hover:underline text-left mt-1">+ Add item</button>
+    </div>
+  );
+}
+
+function SlideEditor({ slides, onChange, fields }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {(slides || []).map((slide, i) => (
+        <div key={i} className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs font-medium text-gray-500">Slide {i + 1}</span>
+            <button
+              onClick={() => onChange((slides || []).filter((_, idx) => idx !== i))}
+              className="text-red-400 hover:text-red-600"
+            >
+              <X size={13} />
+            </button>
+          </div>
+          {fields.map(f => (
+            <div key={f.key} className="mb-1">
+              <label className="text-xs text-gray-400 mb-0.5 block">{f.label}</label>
+              <input
+                value={slide[f.key] ?? ''}
+                onChange={e => {
+                  const next = [...slides];
+                  next[i] = { ...next[i], [f.key]: e.target.value };
+                  onChange(next);
+                }}
+                className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              />
+            </div>
+          ))}
+        </div>
+      ))}
+      <button
+        onClick={() => onChange([...(slides || []), fields.reduce((a, f) => ({ ...a, [f.key]: '' }), {})])}
+        className="text-xs text-indigo-600 hover:underline text-left"
+      >
+        + Add slide
+      </button>
+    </div>
+  );
+}
+
+function ButtonGroupEditor({ buttons, onChange }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {(buttons || []).map((btn, i) => (
+        <div key={i} className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs font-medium text-gray-500">Button {i + 1}</span>
+            <button onClick={() => onChange((buttons || []).filter((_, idx) => idx !== i))} className="text-red-400"><X size={13} /></button>
+          </div>
+          {[
+            { key: 'label', label: 'Label' },
+            { key: 'link', label: 'URL' },
+            { key: 'color', label: 'Background' },
+            { key: 'textColor', label: 'Text Color' },
+          ].map(f => (
+            <div key={f.key} className="mb-1">
+              <label className="text-xs text-gray-400 block mb-0.5">{f.label}</label>
+              <input
+                value={btn[f.key] ?? ''}
+                onChange={e => {
+                  const next = [...buttons];
+                  next[i] = { ...next[i], [f.key]: e.target.value };
+                  onChange(next);
+                }}
+                className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none"
+              />
+            </div>
+          ))}
+        </div>
+      ))}
+      <button onClick={() => onChange([...(buttons || []), { label: 'Button', link: '#', color: '#4F46E5', textColor: '#fff' }])} className="text-xs text-indigo-600 hover:underline text-left">+ Add button</button>
+    </div>
+  );
+}
+
+const fieldConfig = {
+  'header-logo-center': [
+    { key: 'logoUrl', label: 'Logo URL', type: 'image' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'header-logo-left': [
+    { key: 'logoUrl', label: 'Logo URL', type: 'image' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'navLinks', label: 'Nav Links', type: 'stringlist' },
+  ],
+  'header-banner': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'header-minimal': [
+    { key: 'title', label: 'Company Name', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'borderBottom', label: 'Border (e.g. 3px solid #4F46E5)', type: 'text' },
+  ],
+  'hero-fullwidth': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'alt', label: 'Alt Text', type: 'text' },
+    { key: 'link', label: 'Link URL', type: 'text' },
+  ],
+  'hero-overlay': [
+    { key: 'imageUrl', label: 'Background Image URL', type: 'image' },
+    { key: 'overlayText', label: 'Overlay Title', type: 'richtext' },
+    { key: 'overlaySubtext', label: 'Overlay Subtext', type: 'richtext', rows: 4 },
+    { key: 'overlayColor', label: 'Overlay Color (rgba)', type: 'text' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'hero-split': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'title', label: 'Title', type: 'richtext' },
+    { key: 'body', label: 'Body', type: 'richtext', rows: 4 },
+    { key: 'ctaLabel', label: 'Button Label', type: 'text' },
+    { key: 'ctaLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'content-single': [
+    { key: 'title', label: 'Title', type: 'richtext' },
+    { key: 'body', label: 'Body', type: 'richtext', rows: 5 },
+    { key: 'titleColor', label: 'Title Color', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }] },
+  ],
+  'content-two-col': [
+    { key: 'col1Title', label: 'Column 1 Title', type: 'richtext' },
+    { key: 'col1Body', label: 'Column 1 Body', type: 'richtext', rows: 4 },
+    { key: 'col2Title', label: 'Column 2 Title', type: 'richtext' },
+    { key: 'col2Body', label: 'Column 2 Body', type: 'richtext', rows: 4 },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'content-quote': [
+    { key: 'quote', label: 'Quote', type: 'richtext', rows: 4 },
+    { key: 'attribution', label: 'Attribution', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'accentColor', label: 'Accent Color', type: 'color' },
+  ],
+  'content-numbered': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'steps', label: 'Steps', type: 'stringlist' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'cta-centered': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'buttonColor', label: 'Button Color', type: 'color' },
+    { key: 'buttonTextColor', label: 'Button Text Color', type: 'color' },
+  ],
+  'cta-banner': [
+    { key: 'text', label: 'Banner Text', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'buttonColor', label: 'Button Color', type: 'color' },
+    { key: 'buttonTextColor', label: 'Button Text Color', type: 'color' },
+  ],
+  'cta-split': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'buttonColor', label: 'Button Color', type: 'color' },
+    { key: 'buttonTextColor', label: 'Button Text Color', type: 'color' },
+  ],
+  'button-primary': [
+    { key: 'label', label: 'Label', type: 'text' },
+    { key: 'link', label: 'Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'borderRadius', label: 'Border Radius', type: 'text' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'button-outline': [
+    { key: 'label', label: 'Label', type: 'text' },
+    { key: 'link', label: 'Link', type: 'text' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'border', label: 'Border (e.g. 2px solid #4F46E5)', type: 'text' },
+    { key: 'borderRadius', label: 'Border Radius', type: 'text' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'button-group': [
+    { key: 'buttons', label: 'Buttons', type: 'buttongroup' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'button-pill': [
+    { key: 'label', label: 'Label', type: 'text' },
+    { key: 'link', label: 'Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'image-single': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'alt', label: 'Alt Text', type: 'text' },
+    { key: 'link', label: 'Link URL', type: 'text' },
+    { key: 'imageWidth', label: 'Image Width (e.g. 320px or 80%)', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'image-two-col': [
+    { key: 'image1Url', label: 'Image 1 URL', type: 'image' },
+    { key: 'alt1', label: 'Image 1 Alt', type: 'text' },
+    { key: 'link1', label: 'Image 1 Link', type: 'text' },
+    { key: 'image2Url', label: 'Image 2 URL', type: 'image' },
+    { key: 'alt2', label: 'Image 2 Alt', type: 'text' },
+    { key: 'link2', label: 'Image 2 Link', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'image-caption': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'alt', label: 'Alt Text', type: 'text' },
+    { key: 'caption', label: 'Caption', type: 'text' },
+    { key: 'imageWidth', label: 'Image Width (e.g. 320px or 80%)', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'image-panorama': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'alt', label: 'Alt Text', type: 'text' },
+    { key: 'link', label: 'Link URL', type: 'text' },
+    { key: 'imageWidth', label: 'Image Width (e.g. 600px or 100%)', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'card-product': [
+    { key: 'imageUrl', label: 'Product Image URL', type: 'image' },
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'price', label: 'Price', type: 'text' },
+    { key: 'description', label: 'Description', type: 'textarea' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'image-left-text': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'imageColumnWidth', label: 'Image Column Width (e.g. 42%)', type: 'text' },
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'title', label: 'Title', type: 'richtext' },
+    { key: 'body', label: 'Body', type: 'richtext', rows: 4 },
+    { key: 'readMoreLink', label: 'Read More Link', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'image-right-text': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'imageColumnWidth', label: 'Image Column Width (e.g. 42%)', type: 'text' },
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'title', label: 'Title', type: 'richtext' },
+    { key: 'body', label: 'Body', type: 'richtext', rows: 4 },
+    { key: 'readMoreLink', label: 'Read More Link', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'image-big-button': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'imageWidth', label: 'Image Width (e.g. 420px or 100%)', type: 'text' },
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'tagColor', label: 'Tag Color', type: 'color' },
+    { key: 'title', label: 'Title', type: 'richtext' },
+    { key: 'body', label: 'Body', type: 'richtext', rows: 4 },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'image-big-col': [
+    { key: 'mainImage', label: 'Main Image URL', type: 'image' },
+    { key: 'mainColumnWidth', label: 'Main Column Width (e.g. 48%)', type: 'text' },
+    { key: 'mainTag', label: 'Main Tag', type: 'text' },
+    { key: 'mainTitle', label: 'Main Title', type: 'text' },
+    { key: 'mainBody', label: 'Main Body', type: 'textarea' },
+    { key: 'sideArticles', label: 'Side Articles', type: 'slides', fields: [{ key: 'date', label: 'Date' }, { key: 'title', label: 'Title' }, { key: 'body', label: 'Body' }, { key: 'link', label: 'Link' }, { key: 'imageUrl', label: 'Image URL' }] },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'image-video': [
+    { key: 'thumbnailUrl', label: 'Thumbnail URL', type: 'image' },
+    { key: 'imageWidth', label: 'Thumbnail Width (e.g. 420px or 100%)', type: 'text' },
+    { key: 'videoLink', label: 'Video Link', type: 'text' },
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'image-panorama': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'alt', label: 'Alt Text', type: 'text' },
+    { key: 'link', label: 'Link URL', type: 'text' },
+    { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
+    { key: 'backgroundColor', label: 'Background Color', type: 'color' },
+  ],
+  'cta-app-store': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'appStoreLink', label: 'App Store Link', type: 'text' },
+    { key: 'playStoreLink', label: 'Google Play Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'cta-newsletter': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'inputPlaceholder', label: 'Input Placeholder', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'cta-event': [
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'date', label: 'Date', type: 'text' },
+    { key: 'location', label: 'Location', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'buttonColor', label: 'Button Color', type: 'color' },
+    { key: 'buttonTextColor', label: 'Button Text Color', type: 'color' },
+  ],
+
+  // ── ECOMMERCE ──────────────────────────────────────────────────────────────
+  'ecom-product-single': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'title', label: 'Product Name', type: 'richtext' },
+    { key: 'price', label: 'Price', type: 'text' },
+    { key: 'originalPrice', label: 'Original Price', type: 'text' },
+    { key: 'description', label: 'Description', type: 'richtext', rows: 3 },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-product-two': [
+    { key: 'products', label: 'Products', type: 'slides', fields: [{ key: 'imageUrl', label: 'Image URL' }, { key: 'title', label: 'Title' }, { key: 'price', label: 'Price' }, { key: 'link', label: 'Link' }] },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-product-three': [
+    { key: 'products', label: 'Products', type: 'slides', fields: [{ key: 'imageUrl', label: 'Image URL' }, { key: 'title', label: 'Title' }, { key: 'price', label: 'Price' }, { key: 'link', label: 'Link' }] },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-flash-sale': [
+    { key: 'badge', label: 'Badge Text', type: 'text' },
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'ecom-featured': [
+    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'align', label: 'Image Side', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }] },
+  ],
+  'ecom-order-confirm': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'orderNumber', label: 'Order Number', type: 'text' },
+    { key: 'total', label: 'Total', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-abandoned-cart': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'itemName', label: 'Item Name', type: 'text' },
+    { key: 'itemPrice', label: 'Item Price', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-promo-code': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'code', label: 'Promo Code', type: 'text' },
+    { key: 'expiry', label: 'Expiry Text', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'accentColor', label: 'Accent Color', type: 'color' },
+  ],
+  'ecom-new-arrivals': [
+    { key: 'title', label: 'Section Title', type: 'text' },
+    { key: 'products', label: 'Products', type: 'slides', fields: [{ key: 'imageUrl', label: 'Image URL' }, { key: 'title', label: 'Title' }, { key: 'tag', label: 'Tag' }, { key: 'price', label: 'Price' }, { key: 'link', label: 'Link' }] },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-review': [
+    { key: 'imageUrl', label: 'Product Image URL', type: 'image' },
+    { key: 'productName', label: 'Product Name', type: 'text' },
+    { key: 'reviewText', label: 'Review Text', type: 'textarea' },
+    { key: 'reviewer', label: 'Reviewer Name', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-wishlist': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'ecom-referral': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'body', label: 'Body', type: 'textarea' },
+    { key: 'points', label: 'Points', type: 'text' },
+    { key: 'equivalent', label: 'Equivalent Value', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'accentColor', label: 'Accent Color', type: 'color' },
+  ],
+  'ecom-bundle': [
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'products', label: 'Products', type: 'slides', fields: [{ key: 'imageUrl', label: 'Image URL' }, { key: 'title', label: 'Title' }] },
+    { key: 'bundlePrice', label: 'Bundle Price', type: 'text' },
+    { key: 'originalPrice', label: 'Original Price', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+
+  // ── NEW CARDS ──────────────────────────────────────────────────────────────
+  'card-blog': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'category', label: 'Category', type: 'text' },
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'date', label: 'Date', type: 'text' },
+    { key: 'readMoreLink', label: 'Read More Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'card-testimonial': [
+    { key: 'quote', label: 'Quote', type: 'richtext', rows: 4 },
+    { key: 'name', label: 'Name', type: 'text' },
+    { key: 'role', label: 'Role', type: 'text' },
+    { key: 'avatarUrl', label: 'Avatar URL', type: 'image' },
+    { key: 'stars', label: 'Stars (1–5)', type: 'number' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'card-event': [
+    { key: 'date', label: 'Day', type: 'text' },
+    { key: 'month', label: 'Month / Year', type: 'text' },
+    { key: 'title', label: 'Event Title', type: 'text' },
+    { key: 'location', label: 'Location', type: 'text' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'accentColor', label: 'Accent Color', type: 'color' },
+  ],
+  'card-stat': [
+    { key: 'stats', label: 'Stats', type: 'slides', fields: [{ key: 'value', label: 'Value' }, { key: 'label', label: 'Label' }] },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'card-checklist-item': [
+    { key: 'imageUrl', label: 'Image URL', type: 'image' },
+    { key: 'title', label: 'Title', type: 'text' },
+    { key: 'items', label: 'Checklist Items', type: 'stringlist' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+
+  // ── NEW BUTTONS ────────────────────────────────────────────────────────────
+  'button-icon-left': [
+    { key: 'label', label: 'Label', type: 'text' },
+    { key: 'link', label: 'Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'borderRadius', label: 'Border Radius', type: 'text' },
+    { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
+  ],
+  'button-full-width': [
+    { key: 'label', label: 'Label', type: 'text' },
+    { key: 'link', label: 'Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+    { key: 'borderRadius', label: 'Border Radius', type: 'text' },
+  ],
+
+  // ── NEW SURVEYS ────────────────────────────────────────────────────────────
+  'survey-csat': [
+    { key: 'question', label: 'Question', type: 'text' },
+    { key: 'emojis', label: 'Emojis', type: 'stringlist' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+  'survey-poll': [
+    { key: 'question', label: 'Question', type: 'text' },
+    { key: 'choices', label: 'Choices', type: 'stringlist' },
+    { key: 'buttonLabel', label: 'Button Label', type: 'text' },
+    { key: 'buttonLink', label: 'Button Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+
+  // ── NEW CAROUSEL ───────────────────────────────────────────────────────────
+  'carousel-testimonial': [
+    { key: 'slides', label: 'Slides', type: 'slides', fields: [{ key: 'quote', label: 'Quote' }, { key: 'name', label: 'Name' }, { key: 'role', label: 'Role' }] },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+  ],
+
+  // ── NEW FOOTERS ────────────────────────────────────────────────────────────
+  'footer-minimal-dark': [
+    { key: 'companyName', label: 'Company Name', type: 'text' },
+    { key: 'year', label: 'Year', type: 'text' },
+    { key: 'unsubscribeLink', label: 'Unsubscribe Link', type: 'text' },
+    { key: 'privacyLink', label: 'Privacy Link', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'footer-logo-links': [
+    { key: 'logoUrl', label: 'Logo URL', type: 'image' },
+    { key: 'address', label: 'Address', type: 'text' },
+    { key: 'backgroundColor', label: 'Background', type: 'color' },
+    { key: 'textColor', label: 'Text Color', type: 'color' },
+  ],
+  'raw-html': [
+    { key: 'html', label: 'HTML', type: 'textarea', rows: 16 },
+  ],
+};
+
+export default function PropertyPanel({ element, onUpdate, onDelete, onClose }) {
+  const [collapsed, setCollapsed] = useState({});
+  if (!element) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm px-6 text-center">
+        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <p className="font-medium text-gray-500">No element selected</p>
+        <p className="text-xs mt-1">Click an element on the canvas to edit its properties</p>
+      </div>
+    );
+  }
+
+  const fields = fieldConfig[element.type] || [];
+
+  const handleChange = (key, value) => {
+    onUpdate({ ...element, props: { ...element.props, [key]: value } });
+  };
+
+  const handleChangeMulti = (patch) => {
+    onUpdate({ ...element, props: { ...element.props, ...patch } });
+  };
+
+  const renderField = (field) => {
+    const val = element.props[field.key];
+    const keyLooksLikeImageUrl = /(?:image|logo|avatar|thumbnail).*(?:Url|URL)$/.test(field.key || '');
+    if (field.type === 'color') {
+      return <ColorInput key={field.key} value={val} onChange={v => handleChange(field.key, v)} />;
+    }
+    if (field.type === 'boolean') {
+      return <Checkbox key={field.key} value={val} onChange={v => handleChange(field.key, v)} label={field.checkboxLabel || field.label} />;
+    }
+    if (field.type === 'textarea') {
+      return <Textarea key={field.key} value={val} rows={field.rows || 3} onChange={v => handleChange(field.key, v)} />;
+    }
+    if (field.type === 'richtext') {
+      return <RichTextInput key={field.key} fieldKey={field.key} props={element.props} onChangeMulti={handleChangeMulti} rows={field.rows || 3} />;
+    }
+    if (field.type === 'select') {
+      return <Select key={field.key} value={val} onChange={v => handleChange(field.key, v)} options={field.options} />;
+    }
+    if (field.type === 'number') {
+      return <Input key={field.key} type="number" value={val} onChange={v => handleChange(field.key, Number(v))} />;
+    }
+    if (field.type === 'stringlist') {
+      return <StringListEditor key={field.key} value={val} onChange={v => handleChange(field.key, v)} />;
+    }
+    if (field.type === 'slides') {
+      return <SlideEditor key={field.key} slides={val} onChange={v => handleChange(field.key, v)} fields={field.fields || []} />;
+    }
+    if (field.type === 'buttongroup') {
+      return <ButtonGroupEditor key={field.key} buttons={val} onChange={v => handleChange(field.key, v)} />;
+    }
+    if (field.type === 'image' || keyLooksLikeImageUrl) {
+      return <ImageUpload key={field.key} value={val} onChange={v => handleChange(field.key, v)} />;
+    }
+    return <Input key={field.key} value={val} onChange={v => handleChange(field.key, v)} />;
+  };
+
+  const isFieldHideable = (field) => {
+    return ['text', 'textarea', 'richtext', 'image', 'number'].includes(field.type);
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div>
+          <h3 className="font-semibold text-gray-800 text-sm">Properties</h3>
+          <p className="text-xs text-gray-400 mt-0.5">{element.type}</p>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onDelete}
+            title="Delete element"
+            className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+          <button
+            onClick={onClose}
+            title="Close"
+            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        {fields.length === 0 && (
+          <p className="text-xs text-gray-400">No editable properties for this element.</p>
+        )}
+        {fields.map(field => {
+          const hidden = !!element.props[`${field.key}Hidden`];
+          const hideable = isFieldHideable(field);
+          return (
+            <Field
+              key={field.key}
+              label={field.label}
+              right={hideable ? (
+                <label className="inline-flex items-center gap-1 text-[11px] text-gray-500 select-none">
+                  <input
+                    type="checkbox"
+                    checked={!hidden}
+                    onChange={e => handleChange(`${field.key}Hidden`, !e.target.checked)}
+                    className="w-3.5 h-3.5 accent-indigo-600"
+                  />
+                  Show
+                </label>
+              ) : null}
+            >
+              {renderField(field)}
+            </Field>
+          );
+        })}
+
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <p className="text-[11px] font-semibold tracking-wide text-gray-500 uppercase mb-2">Element Spacing</p>
+          <Field label="Padding (CSS shorthand)">
+            <Input
+              value={element.props.elementPadding || ''}
+              onChange={v => handleChange('elementPadding', v)}
+              placeholder="e.g. 24px 40px"
+            />
+          </Field>
+          <Field label="Margin (CSS shorthand)">
+            <Input
+              value={element.props.elementMargin || ''}
+              onChange={v => handleChange('elementMargin', v)}
+              placeholder="e.g. 16px 0"
+            />
+          </Field>
+        </div>
+      </div>
+    </div>
+  );
+}

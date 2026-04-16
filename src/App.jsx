@@ -29,6 +29,7 @@ const defaultMeta = {
   to: '',
   cc: '',
   bcc: '',
+  canvasWidth: '600',
 };
 
 function formatSavedAt(value) {
@@ -573,6 +574,7 @@ function App() {
               onReorder={handleReorder}
               onDelete={handleDelete}
               onDuplicate={handleDuplicate}
+              emailMeta={emailMeta}
             />
           </div>
         </div>

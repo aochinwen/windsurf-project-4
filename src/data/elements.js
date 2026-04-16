@@ -241,13 +241,13 @@ export const ELEMENT_TEMPLATES = {
       id: 'image-left-text',
       label: 'Image Left + Text',
       thumbnail: 'img-7',
-      defaults: { imageUrl: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=240&h=180&fit=crop', tags: [{ text: "What's new", color: '#6366f1' }], title: 'Sustainable Living', body: 'Explore how sustainable furniture choices can make a positive impact on the environment without compromising on style or comfort.', readMoreLink: '#', backgroundColor: '#ffffff' },
+      defaults: { imageUrl: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=240&h=180&fit=crop', tags: [{ text: "What's new", color: '#6366f1' }], title: 'Sustainable Living', body: 'Explore how sustainable furniture choices can make a positive impact on the environment without compromising on style or comfort.', readMoreLink: '#', readMoreLabel: 'Read more →', backgroundColor: '#ffffff' },
     },
     {
       id: 'image-right-text',
       label: 'Image Right + Text',
       thumbnail: 'img-8',
-      defaults: { imageUrl: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=240&h=180&fit=crop', tags: [{ text: "What's new", color: '#6366f1' }], title: 'The Art of Mixing', body: 'Unlock the secrets of successful furniture mixing and learn how to effortlessly blend different styles, textures, and eras.', readMoreLink: '#', backgroundColor: '#ffffff' },
+      defaults: { imageUrl: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=240&h=180&fit=crop', tags: [{ text: "What's new", color: '#6366f1' }], title: 'The Art of Mixing', body: 'Unlock the secrets of successful furniture mixing and learn how to effortlessly blend different styles, textures, and eras.', readMoreLink: '#', readMoreLabel: 'Read more →', backgroundColor: '#ffffff' },
     },
     {
       id: 'image-big-button',
@@ -479,7 +479,7 @@ export const ELEMENT_TEMPLATES = {
       id: 'card-blog',
       label: 'Blog Card',
       thumbnail: 'card-4',
-      defaults: { imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&h=180&fit=crop', category: 'Design', title: 'The Art of Mixing Furniture Styles', date: 'April 12, 2025', readMoreLink: '#', backgroundColor: '#ffffff' },
+      defaults: { imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&h=180&fit=crop', category: 'Design', title: 'The Art of Mixing Furniture Styles', date: 'April 12, 2025', readMoreLink: '#', readMoreLabel: 'Read more →', backgroundColor: '#ffffff' },
     },
     {
       id: 'card-testimonial',

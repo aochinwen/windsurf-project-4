@@ -39,6 +39,7 @@ export default function EmailMetaModal({ meta, onChange, onClose, onExport }) {
           {field('To', 'to', 'recipient@example.com')}
           {field('CC', 'cc', 'cc@example.com')}
           {field('BCC', 'bcc', 'bcc@example.com')}
+          {field('Canvas Width (px)', 'canvasWidth', '600')}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
             <p className="text-xs text-amber-700">
               <strong>Tip:</strong> Open the exported .eml file directly in Outlook to compose and send it. The To/From/CC fields can be changed in Outlook before sending.

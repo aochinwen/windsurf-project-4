@@ -194,11 +194,19 @@ export async function downloadImageEml(elements, emailMeta) {
     return;
   }
 
+  let actualWidth = 600;
+  if (elements && elements.length > 0) {
+    const canvasElement = document.getElementById(`element-${elements[0].id}`);
+    if (canvasElement && canvasElement.offsetWidth) {
+      actualWidth = canvasElement.offsetWidth;
+    }
+  }
+
   const container = document.createElement('div');
   container.style.position = 'fixed';
   container.style.left = '0px';
   container.style.top = '0px';
-  container.style.width = '600px'; 
+  container.style.width = `${actualWidth}px`; 
   container.style.zIndex = '-9999';
   container.style.opacity = '0.01'; 
   container.style.pointerEvents = 'none';
@@ -206,7 +214,7 @@ export async function downloadImageEml(elements, emailMeta) {
   container.style.fontFamily = 'sans-serif';
   document.body.appendChild(container);
 
-  const imagesBase64 = [];
+  const slices = [];
 
   for (const element of elements) {
     const rawHtml = renderElementHtmlWithPostProcessing(element);
@@ -215,7 +223,14 @@ export async function downloadImageEml(elements, emailMeta) {
       .replace(/<!--\[if gte mso 9\]><!-- -->.*?<!\[endif\]-->/gis, '')
       .replace(/<v:[a-z0-9]+[^>]*>.*?<\/v:[a-z0-9]+>/gis, ''); // Remove VML nodes that crash XML serializers
       
-    container.innerHTML = `<div style="width: 600px;">${safeHtml}</div>`;
+    // Extract the first valid external link
+    const linkMatch = rawHtml.match(/href="([^"]+)"/);
+    let href = null;
+    if (linkMatch && linkMatch[1] && !linkMatch[1].startsWith('#')) {
+      href = linkMatch[1];
+    }
+      
+    container.innerHTML = `<div style="width: ${actualWidth}px;">${safeHtml}</div>`;
     
     // Wait for images to load inside this element
     const imgs = Array.from(container.querySelectorAll('img'));
@@ -241,7 +256,7 @@ export async function downloadImageEml(elements, emailMeta) {
           zIndex: '1'
         }
       });
-      imagesBase64.push(dataUrl);
+      slices.push({ dataUrl, href });
     } catch (e) {
       console.error('Failed to capture element', element.id, e);
     }
@@ -254,10 +269,12 @@ export async function downloadImageEml(elements, emailMeta) {
   const relBoundary  = `----=_ImageRel_${Date.now()}`;
   const altBoundary  = `----=_ImageAlt_${Date.now()}`;
   
-  let sliceHtml = `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${emailMeta?.backgroundColor || '#ffffff'}; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;"><tr><td align="center" style="padding:0;margin:0;font-size:0;line-height:0;"><table width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;margin:0 auto;background-color:${emailMeta?.backgroundColor || '#ffffff'}; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">`;
+  let sliceHtml = `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${emailMeta?.backgroundColor || '#ffffff'}; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;"><tr><td align="center" style="padding:0;margin:0;font-size:0;line-height:0;"><table width="${actualWidth}" cellpadding="0" cellspacing="0" border="0" style="width:${actualWidth}px;max-width:${actualWidth}px;margin:0 auto;background-color:${emailMeta?.backgroundColor || '#ffffff'}; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">`;
   
-  imagesBase64.forEach((_, i) => {
-    sliceHtml += `<tr><td style="padding:0;margin:0;font-size:0;line-height:0;vertical-align:top;"><img src="cid:slice-${i}@emleditor.local" width="600" style="display:block;width:100%;max-width:600px;border:0;outline:none;text-decoration:none;margin:0;padding:0;" alt="Email Content Slice" /></td></tr>`;
+  slices.forEach((slice, i) => {
+    const imgTag = `<img src="cid:slice-${i}@emleditor.local" width="${actualWidth}" style="display:block;width:100%;max-width:${actualWidth}px;border:0;outline:none;text-decoration:none;margin:0;padding:0;" alt="Email Content Slice" />`;
+    const inner = slice.href ? `<a href="${slice.href}" target="_blank" style="text-decoration:none;border:0;display:block;">${imgTag}</a>` : imgTag;
+    sliceHtml += `<tr><td style="padding:0;margin:0;font-size:0;line-height:0;vertical-align:top;">${inner}</td></tr>`;
   });
   sliceHtml += `</table></td></tr></table>`;
 
@@ -270,9 +287,9 @@ export async function downloadImageEml(elements, emailMeta) {
 </html>`;
 
   // Build inline image MIME parts
-  const imageParts = imagesBase64.map((dataUrl, i) => {
-    const b64 = base64FromDataUrl(dataUrl);
-    const mime = mimeTypeFromDataUrl(dataUrl);
+  const imageParts = slices.map((slice, i) => {
+    const b64 = base64FromDataUrl(slice.dataUrl);
+    const mime = mimeTypeFromDataUrl(slice.dataUrl);
     return [
       `--${relBoundary}`,
       `Content-Type: ${mime}; name="slice-${i}.png"`,

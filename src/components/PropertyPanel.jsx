@@ -113,7 +113,11 @@ function ToggleBtn({ active, onClick, title, children }) {
 function RichTextInput({ fieldKey, props, onChangeMulti, rows = 3 }) {
   const val   = props[fieldKey] ?? '';
   const font  = props[`${fieldKey}Font`]   ?? 'sans-serif';
-  const fontSize = props[`${fieldKey}FontSize`] ?? '';
+  const rawFontSize = props[`${fieldKey}FontSize`];
+  let fontSize = rawFontSize ?? '';
+  if (typeof rawFontSize === 'number' || (typeof rawFontSize === 'string' && /^\d+$/.test(rawFontSize))) {
+    fontSize = `${rawFontSize}px`;
+  }
   const bold  = props[`${fieldKey}Bold`]   ?? false;
   const italic = props[`${fieldKey}Italic`] ?? false;
   const underline = props[`${fieldKey}Underline`] ?? false;
@@ -274,6 +278,17 @@ function SlideEditor({ slides, onChange, fields }) {
                     onChange(next);
                   }}
                 />
+              ) : f.type === 'richtext' ? (
+                <RichTextInput
+                  props={slide}
+                  fieldKey={f.key}
+                  onChangeMulti={opts => {
+                    const next = [...slides];
+                    next[i] = { ...next[i], ...opts };
+                    onChange(next);
+                  }}
+                  rows={f.rows || 2}
+                />
               ) : (
                 <input
                   value={slide[f.key] ?? ''}
@@ -336,22 +351,26 @@ function ButtonGroupEditor({ buttons, onChange }) {
 
 const fieldConfig = {
   'header-logo-center': [
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
     { key: 'logoUrl', label: 'Logo URL', type: 'image' },
     { key: 'backgroundColor', label: 'Background', type: 'color' },
     { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
   ],
   'header-logo-left': [
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
     { key: 'logoUrl', label: 'Logo URL', type: 'image' },
     { key: 'backgroundColor', label: 'Background', type: 'color' },
     { key: 'navLinks', label: 'Nav Links', type: 'stringlist' },
   ],
   'header-banner': [
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
     { key: 'title', label: 'Title', type: 'text' },
     { key: 'subtitle', label: 'Subtitle', type: 'text' },
     { key: 'backgroundColor', label: 'Background', type: 'color' },
     { key: 'textColor', label: 'Text Color', type: 'color' },
   ],
   'header-minimal': [
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
     { key: 'title', label: 'Company Name', type: 'text' },
     { key: 'backgroundColor', label: 'Background', type: 'color' },
     { key: 'textColor', label: 'Text Color', type: 'color' },
@@ -552,6 +571,7 @@ const fieldConfig = {
     { key: 'title', label: 'Title', type: 'richtext' },
     { key: 'body', label: 'Body', type: 'richtext', rows: 4 },
     { key: 'readMoreLink', label: 'Read More Link', type: 'text' },
+    { key: 'readMoreLabel', label: 'Read More Label', type: 'text' },
     { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
     { key: 'backgroundColor', label: 'Background', type: 'color' },
   ],
@@ -564,6 +584,7 @@ const fieldConfig = {
     { key: 'title', label: 'Title', type: 'richtext' },
     { key: 'body', label: 'Body', type: 'richtext', rows: 4 },
     { key: 'readMoreLink', label: 'Read More Link', type: 'text' },
+    { key: 'readMoreLabel', label: 'Read More Label', type: 'text' },
     { key: 'useBackgroundColor', label: 'Background Fill', type: 'boolean', checkboxLabel: 'Enable background color' },
     { key: 'backgroundColor', label: 'Background', type: 'color' },
   ],
@@ -758,6 +779,7 @@ const fieldConfig = {
     { key: 'title', label: 'Title', type: 'text' },
     { key: 'date', label: 'Date', type: 'text' },
     { key: 'readMoreLink', label: 'Read More Link', type: 'text' },
+    { key: 'readMoreLabel', label: 'Read More Label', type: 'text' },
     { key: 'backgroundColor', label: 'Background', type: 'color' },
   ],
   'card-testimonial': [
@@ -846,12 +868,14 @@ const fieldConfig = {
   ],
   // ── AUTO GENERATED MISSING ELEMENTS ──
   'header-dark': [
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
     { key: 'logoUrl', label: 'Logo Url', type: 'image' },
     { key: 'backgroundColor', label: 'Background Color', type: 'color' },
     { key: 'textColor', label: 'Text Color', type: 'color' },
     { key: 'tagline', label: 'Tagline', type: 'text' },
   ],
   'header-logo-tagline': [
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
     { key: 'logoUrl', label: 'Logo Url', type: 'image' },
     { key: 'tagline', label: 'Tagline', type: 'text' },
     { key: 'backgroundColor', label: 'Background Color', type: 'color' },
@@ -859,12 +883,15 @@ const fieldConfig = {
     { key: 'align', label: 'Align', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }] },
   ],
   'header-gradient': [
-    { key: 'subtitle', label: 'Subtitle', type: 'text' },
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
+    { key: 'title', label: 'Title', type: 'richtext' },
+    { key: 'subtitle', label: 'Subtitle', type: 'richtext' },
     { key: 'gradientFrom', label: 'Gradient From', type: 'color' },
     { key: 'gradientTo', label: 'Gradient To', type: 'color' },
     { key: 'textColor', label: 'Text Color', type: 'color' },
   ],
   'header-announcement': [
+    { key: 'height', label: 'Height (e.g. 80px, auto)', type: 'text' },
     { key: 'message', label: 'Message', type: 'textarea' },
     { key: 'linkLabel', label: 'Link Label', type: 'text' },
     { key: 'backgroundColor', label: 'Background Color', type: 'color' },
@@ -895,8 +922,7 @@ const fieldConfig = {
     { key: 'backgroundColor', label: 'Background Color', type: 'color' },
   ],
   'content-blog-two-col': [
-    { key: 'articles', label: 'Articles', type: 'slides', fields: [{ key: 'title', label: 'Title' }, { key: 'date', label: 'Date' }, { key: 'body', label: 'Body' }, { key: 'link', label: 'Link' }, { key: 'imageUrl', label: 'Image URL' }] },
-    { key: 'tag', label: 'Tag', type: 'text' },
+    { key: 'articles', label: 'Articles', type: 'slides', fields: [{ key: 'tag', label: 'Tag' }, { key: 'title', label: 'Title', type: 'richtext', rows: 2 }, { key: 'date', label: 'Date' }, { key: 'body', label: 'Body', type: 'richtext', rows: 3 }, { key: 'link', label: 'Read More Link' }, { key: 'readMoreLabel', label: 'Read More Label' }, { key: 'imageUrl', label: 'Image URL', type: 'image' }] },
     { key: 'backgroundColor', label: 'Background Color', type: 'color' },
   ],
   'content-checklist': [

@@ -135,7 +135,7 @@ export function renderElementHtml(element) {
   switch (type) {
     case 'header-logo-center':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${props.backgroundColor};border-bottom:${props.borderBottom || 'none'}">
-  <tr><td align="${props.align || 'center'}" style="padding:20px">
+  <tr><td align="${props.align || 'center'}" ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 20px' : '20px'};${props.height ? `height:${props.height}` : ''}">
     <img src="${props.logoUrl}" alt="Logo" style="max-height:50px;display:inline-block"/>
   </td></tr>
 </table>`;
@@ -143,8 +143,8 @@ export function renderElementHtml(element) {
     case 'header-logo-left':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${props.backgroundColor}">
   <tr>
-    <td style="padding:16px 24px"><img src="${props.logoUrl}" alt="Logo" style="max-height:40px"/></td>
-    <td align="right" style="padding:16px 24px">
+    <td ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '16px 24px'};${props.height ? `height:${props.height}` : ''}"><img src="${props.logoUrl}" alt="Logo" style="max-height:40px"/></td>
+    <td align="right" ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '16px 24px'};${props.height ? `height:${props.height}` : ''}">
       ${(props.navLinks || []).map(l => `<a href="#" style="color:#c7d2fe;text-decoration:none;margin-left:16px;font-size:14px">${l}</a>`).join('')}
     </td>
   </tr>
@@ -152,7 +152,7 @@ export function renderElementHtml(element) {
 
     case 'header-banner':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${props.backgroundColor}">
-  <tr><td align="center" style="padding:32px 24px">
+  <tr><td align="center" ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '32px 24px'};${props.height ? `height:${props.height}` : ''}">
     <h1 style="margin:0;font-size:28px;color:${props.textColor};font-family:sans-serif">${props.title}</h1>
     <p style="margin:8px 0 0;color:${props.textColor};opacity:0.8;font-family:sans-serif">${props.subtitle}</p>
   </td></tr>
@@ -160,7 +160,7 @@ export function renderElementHtml(element) {
 
     case 'header-minimal':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${props.backgroundColor};border-bottom:${props.borderBottom || '3px solid #4F46E5'}">
-  <tr><td style="padding:16px 24px">
+  <tr><td ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '16px 24px'};${props.height ? `height:${props.height}` : ''}">
     <span style="font-size:20px;font-weight:700;color:${props.textColor};font-family:sans-serif">${props.title}</span>
   </td></tr>
 </table>`;
@@ -480,8 +480,8 @@ export function renderElementHtml(element) {
     case 'header-dark':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${props.backgroundColor}">
   <tr>
-    <td style="padding:18px 24px"><img src="${props.logoUrl}" alt="Logo" style="max-height:44px"/></td>
-    <td align="right" style="padding:18px 24px;color:${props.textColor};font-family:sans-serif;font-size:14px">${props.tagline}</td>
+    <td ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '18px 24px'};${props.height ? `height:${props.height}` : ''}"><img src="${props.logoUrl}" alt="Logo" style="max-height:44px"/></td>
+    <td align="right" ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '18px 24px'};color:${props.textColor};font-family:sans-serif;font-size:14px;${props.height ? `height:${props.height}` : ''}">${props.tagline}</td>
   </tr>
 </table>`;
 
@@ -498,7 +498,7 @@ export function renderElementHtml(element) {
 
     case 'header-logo-tagline':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${props.backgroundColor}">
-  <tr><td align="${props.align || 'center'}" style="padding:20px">
+  <tr><td align="${props.align || 'center'}" ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 20px' : '20px'};${props.height ? `height:${props.height}` : ''}">
     <img src="${props.logoUrl}" alt="Logo" style="max-height:44px;display:block;margin:0 auto 6px"/>
     <p style="margin:0;color:${props.textColor};font-size:13px;font-family:sans-serif">${props.tagline}</p>
   </td></tr>
@@ -506,15 +506,15 @@ export function renderElementHtml(element) {
 
     case 'header-gradient':
       return `<table width="100%" cellpadding="0" cellspacing="0">
-  <tr><td align="center" style="padding:32px 24px;background:linear-gradient(135deg,${props.gradientFrom},${props.gradientTo})">
-    <h1 style="margin:0 0 6px;font-size:26px;color:${props.textColor};font-family:sans-serif">${props.title}</h1>
-    <p style="margin:0;color:${props.textColor};opacity:0.8;font-family:sans-serif">${props.subtitle}</p>
+  <tr><td align="center" ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '32px 24px'};background:linear-gradient(135deg,${props.gradientFrom},${props.gradientTo});${props.height ? `height:${props.height}` : ''}">
+    <h1 style="margin:0 0 6px;font-size:26px;color:${props.textColor};font-family:sans-serif;${textStyle(props,'title')}">${props.title}</h1>
+    <p style="margin:0;color:${props.textColor};opacity:0.8;font-family:sans-serif;${textStyle(props,'subtitle')}">${props.subtitle}</p>
   </td></tr>
 </table>`;
 
     case 'header-announcement':
       return `<table width="100%" cellpadding="0" cellspacing="0" style="background:${props.backgroundColor}">
-  <tr><td align="center" style="padding:10px 24px">
+  <tr><td align="center" ${props.height ? `height="${props.height.replace('px','')}" ` : ''}style="padding:${props.height ? '0 24px' : '10px 24px'};${props.height ? `height:${props.height}` : ''}">
     <p style="margin:0;color:${props.textColor};font-size:14px;font-family:sans-serif">${props.message} <a href="${props.link}" style="color:${props.textColor};font-weight:600">${props.linkLabel}</a></p>
   </td></tr>
 </table>`;
@@ -569,11 +569,11 @@ export function renderElementHtml(element) {
     ${(props.articles || []).map(a => `
     <td width="50%" style="padding:20px;vertical-align:top">
       <img src="${a.imageUrl}" width="100%" style="display:block;border-radius:6px;margin-bottom:10px"/>
-      <span style="font-size:11px;color:#6366f1;font-family:sans-serif">${a.tag}</span>
-      <h3 style="margin:4px 0 6px;font-size:16px;color:#111827;font-family:sans-serif">${a.title}</h3>
-      <p style="margin:0 0 10px;color:#6b7280;font-size:13px;font-family:sans-serif">${a.date}</p>
-      <p style="margin:0 0 12px;color:#374151;font-size:14px;font-family:sans-serif">${a.body}</p>
-      ${renderOptionalLink(a.link, 'Read more →', 'color:#6366f1;text-decoration:none;font-size:13px;font-family:sans-serif')}
+      ${a.tag ? `<span style="font-size:11px;color:#6366f1;font-family:sans-serif">${a.tag}</span>` : ''}
+      ${a.title ? `<h3 style="margin:4px 0 6px;font-size:16px;color:#111827;font-family:sans-serif;${textStyle(a, 'title')}">${a.title}</h3>` : ''}
+      ${a.date ? `<p style="margin:0 0 10px;color:#6b7280;font-size:13px;font-family:sans-serif">${a.date}</p>` : ''}
+      ${a.body ? `<p style="margin:0 0 12px;color:#374151;font-size:14px;font-family:sans-serif;${textStyle(a, 'body')}">${a.body}</p>` : ''}
+      ${renderOptionalLink(a.link, a.readMoreLabel || 'Read more →', 'color:#6366f1;text-decoration:none;font-size:13px;font-family:sans-serif')}
     </td>`).join('')}
   </tr>
 </table>`;
@@ -654,7 +654,7 @@ export function renderElementHtml(element) {
       ${renderTags(props, 'left', '10px')}
       <h2 style="margin:0 0 10px;font-size:20px;color:#111827;${textStyle(props,'title')}">${props.title}</h2>
       <p style="margin:0 0 14px;color:#374151;line-height:1.6;${textStyle(props,'body')}">${props.body}</p>
-      ${renderOptionalLink(props.readMoreLink, 'Read more →', 'color:#6366f1;text-decoration:none;font-family:sans-serif;font-weight:600')}
+      ${renderOptionalLink(props.readMoreLink, props.readMoreLabel || 'Read more →', 'color:#6366f1;text-decoration:none;font-family:sans-serif;font-weight:600')}
     </td>
   </tr>
 </table>`;
@@ -666,7 +666,7 @@ export function renderElementHtml(element) {
       ${renderTags(props, 'left', '10px')}
       <h2 style="margin:0 0 10px;font-size:20px;color:#111827;${textStyle(props,'title')}">${props.title}</h2>
       <p style="margin:0 0 14px;color:#374151;line-height:1.6;${textStyle(props,'body')}">${props.body}</p>
-      ${renderOptionalLink(props.readMoreLink, 'Read more →', 'color:#6366f1;text-decoration:none;font-family:sans-serif;font-weight:600')}
+      ${renderOptionalLink(props.readMoreLink, props.readMoreLabel || 'Read more →', 'color:#6366f1;text-decoration:none;font-family:sans-serif;font-weight:600')}
     </td>
     <td width="${getSplitColumnWidths(props.imageColumnWidth, '58%', '42%').secondary}" style="padding:${getInternalPadding(props, '20px')}"><img src="${props.imageUrl}" alt="${props.alt || ''}" style="display:block;${getImageWidthStyle(props.imageWidth, '100%')}"/>${props.caption ? `<p style="margin:8px 0 0;font-size:13px;color:#6b7280;font-style:italic;font-family:sans-serif">${props.caption}</p>` : ''}</td>
   </tr>
@@ -1005,7 +1005,7 @@ export function renderElementHtml(element) {
     <span style="font-size:11px;color:#6366f1;font-family:sans-serif">${props.category}</span>
     <h3 style="margin:6px 0 4px;font-size:18px;color:#111827;font-family:sans-serif">${props.title}</h3>
     <p style="margin:0 0 10px;color:#9ca3af;font-size:13px;font-family:sans-serif">${props.date}</p>
-    ${renderOptionalLink(props.readMoreLink, 'Read more →', 'color:#4F46E5;text-decoration:none;font-family:sans-serif;font-weight:600')}
+    ${renderOptionalLink(props.readMoreLink, props.readMoreLabel || 'Read more →', 'color:#4F46E5;text-decoration:none;font-family:sans-serif;font-weight:600')}
   </td></tr>
 </table>`;
 
@@ -1135,6 +1135,7 @@ export function renderElementHtml(element) {
 }
 
 export function buildEmailHtml(elements, emailMeta) {
+  const canvasWidth = emailMeta?.canvasWidth || '600';
   const body = elements
     .map(el => renderElementHtmlWithPostProcessing(el))
     .join('\n');
@@ -1158,11 +1159,13 @@ export function buildEmailHtml(elements, emailMeta) {
 <body style="margin:0;padding:20px 0;background:#f1f5f9" class="body-wrapper">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9" role="presentation">
 <tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)" class="email-card" role="presentation">
+<!--[if (gte mso 9)|(IE)]><table align="center" border="0" cellspacing="0" cellpadding="0" width="${canvasWidth}"><tr><td align="center" valign="top" width="${canvasWidth}"><![endif]-->
+<table width="${canvasWidth}" cellpadding="0" cellspacing="0" style="width:${canvasWidth}px;max-width:${canvasWidth}px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin:0 auto" class="email-card" role="presentation">
 <tr><td>
 ${body}
 </td></tr>
 </table>
+<!--[if (gte mso 9)|(IE)]></td></tr></table><![endif]-->
 </td></tr>
 </table>
 </body>

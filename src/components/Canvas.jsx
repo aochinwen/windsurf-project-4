@@ -101,7 +101,7 @@ function SortableElement({ element, isSelected, onSelect, onDelete, onDuplicate,
   );
 }
 
-export default function Canvas({ elements, selectedId, onSelect, onReorder, onDelete, onDuplicate }) {
+export default function Canvas({ elements, selectedId, onSelect, onReorder, onDelete, onDuplicate, emailMeta }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
@@ -185,8 +185,8 @@ export default function Canvas({ elements, selectedId, onSelect, onReorder, onDe
       onClick={() => onSelect(null)}
     >
       <div
-        className="w-full max-w-[980px] bg-white shadow-md rounded-lg overflow-hidden"
-        style={{ minHeight: 100 }}
+        className="w-full bg-white shadow-md rounded-lg overflow-hidden transition-all duration-300"
+        style={{ maxWidth: emailMeta?.canvasWidth ? `${emailMeta.canvasWidth}px` : '600px', minHeight: 100, margin: '0 auto' }}
       >
         <DndContext
           sensors={sensors}

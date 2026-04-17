@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -32,7 +32,11 @@ function SortableElement({ element, isSelected, onSelect, onDelete, onDuplicate,
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const html = renderElementHtmlWithPostProcessing(element);
+  // Optimize: Memoize HTML rendering since it uses expensive regex replacements
+  // and string concats which can drop frame rates during 60fps drag operations
+  const html = useMemo(() => {
+    return renderElementHtmlWithPostProcessing(element);
+  }, [element]);
 
   return (
     <div

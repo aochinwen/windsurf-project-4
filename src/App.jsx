@@ -1,12 +1,15 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Eye, Download, RotateCcw, Mail, ChevronLeft, ChevronRight, Upload, Save, FolderOpen, Trash2 } from 'lucide-react';
+import { Eye, Download, RotateCcw, Mail, ChevronLeft, ChevronRight, Upload, Save, FolderOpen, Trash2, Settings } from 'lucide-react';
 import ElementsSidebar from './components/ElementsSidebar';
 import Canvas from './components/Canvas';
 import PropertyPanel from './components/PropertyPanel';
 import EmailMetaModal from './components/EmailMetaModal';
+import GlobalSettingsModal from './components/GlobalSettingsModal';
 import PreviewModal from './components/PreviewModal';
 import { downloadEml, downloadImageEml } from './utils/emlExporter';
 import { importEml } from './utils/emlImporter';
+import { THEMES } from './data/themes';
+import { applyThemeToElement } from './utils/themeHelper';
 import {
   clearSessionFromStorage,
   downloadSessionFile,
@@ -30,6 +33,8 @@ const defaultMeta = {
   cc: '',
   bcc: '',
   canvasWidth: '600',
+  backgroundColor: '#f4f4f5',
+  fontFamily: 'sans-serif',
 };
 
 function formatSavedAt(value) {
@@ -67,6 +72,8 @@ function App() {
   const [savedSessions, setSavedSessions] = useState([]);
   const [saveSessionName, setSaveSessionName] = useState('');
   const [autosaveStatus, setAutosaveStatus] = useState('Not saved yet');
+  const [activeTheme, setActiveTheme] = useState('light');
+  const [showGlobalSettings, setShowGlobalSettings] = useState(false);
 
   const selectedElement = elements.find(e => e.id === selectedId) || null;
 
@@ -78,6 +85,9 @@ function App() {
     setElements(restoredSession.elements);
     setSelectedId(restoredSession.selectedId);
     setEmailMeta(restoredSession.emailMeta);
+    if (restoredSession.activeTheme) {
+      setActiveTheme(restoredSession.activeTheme);
+    }
     setLeftPanelCollapsed(restoredSession.leftPanelCollapsed);
     setRightPanelCollapsed(restoredSession.rightPanelCollapsed);
     nextId = restoredSession.nextId;
@@ -106,6 +116,7 @@ function App() {
       emailMeta,
       leftPanelCollapsed,
       rightPanelCollapsed,
+      activeTheme,
     }).then(savedSession => {
       if (!savedSession.ok) {
         setAutosaveStatus(savedSession.reason === 'quota-exceeded' ? 'Autosave failed: browser storage full' : 'Autosave failed');
@@ -119,10 +130,11 @@ function App() {
       });
       setAutosaveStatus(`Saved ${formatSavedAt(savedSession.session.savedAt)}`);
     });
-  }, [elements, selectedId, emailMeta, leftPanelCollapsed, rightPanelCollapsed, sessionRestored]);
+  }, [elements, selectedId, emailMeta, leftPanelCollapsed, rightPanelCollapsed, activeTheme, sessionRestored]);
 
   const handleAdd = useCallback((template) => {
-    const el = { ...template, id: `el-${nextId++}` };
+    let el = { ...template, id: `el-${nextId++}` };
+    el = applyThemeToElement(el, activeTheme);
     setElements(prev => {
       if (selectedId) {
         const idx = prev.findIndex(e => e.id === selectedId);
@@ -135,7 +147,20 @@ function App() {
       return [...prev, el];
     });
     setSelectedId(el.id);
-  }, [selectedId]);
+  }, [selectedId, activeTheme]);
+
+  const handleThemeChange = useCallback((themeId) => {
+    setActiveTheme(themeId);
+    const theme = THEMES[themeId];
+    if (theme) {
+      setEmailMeta(prev => ({
+        ...prev,
+        backgroundColor: theme.canvasBackground,
+        fontFamily: theme.fontFamily
+      }));
+      setElements(prev => prev.map(el => applyThemeToElement(el, themeId)));
+    }
+  }, []);
 
   const handleSelect = useCallback((id) => {
     setSelectedId(id);
@@ -252,6 +277,7 @@ function App() {
       emailMeta,
       leftPanelCollapsed,
       rightPanelCollapsed,
+      activeTheme,
     });
   };
 
@@ -266,6 +292,7 @@ function App() {
         emailMeta,
         leftPanelCollapsed,
         rightPanelCollapsed,
+        activeTheme,
       });
       setSaveSessionName(targetName);
       refreshSavedSessions();
@@ -408,6 +435,16 @@ function App() {
             {rightPanelCollapsed ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
           </button>
           <button
+            onClick={() => setShowGlobalSettings(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors font-medium"
+            style={{ border: '1px solid #3d4060', color: '#d1d5db', background: 'transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#252840'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#d1d5db'; }}
+            title="Global settings"
+          >
+            <Settings size={14} /> Settings
+          </button>
+          <button
             onClick={handleClear}
             disabled={elements.length === 0}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -477,7 +514,7 @@ function App() {
           style={{ width: leftPanelCollapsed ? 0 : 420 }}
         >
           <div className="flex h-full w-full flex-col">
-            <ElementsSidebar onAdd={handleAdd} />
+            <ElementsSidebar onAdd={handleAdd} activeTheme={activeTheme} onThemeChange={handleThemeChange} />
             {!leftPanelCollapsed && (
               <div className="border-t px-4 py-4" style={{ background: '#111827', borderColor: '#2a2d3e' }}>
                 <div className="flex items-center gap-2">
@@ -604,6 +641,17 @@ function App() {
           onChange={setEmailMeta}
           onClose={() => setShowExportModal(false)}
           onExport={handleExport}
+        />
+      )}
+
+      {/* Global Settings Modal */}
+      {showGlobalSettings && (
+        <GlobalSettingsModal
+          meta={emailMeta}
+          onChange={setEmailMeta}
+          activeTheme={activeTheme}
+          onThemeChange={handleThemeChange}
+          onClose={() => setShowGlobalSettings(false)}
         />
       )}
 

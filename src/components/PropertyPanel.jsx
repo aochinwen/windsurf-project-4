@@ -1187,11 +1187,21 @@ export default function PropertyPanel({ element, onUpdate, onDelete, onClose }) 
   const fields = fieldConfig[element.type] || [];
 
   const handleChange = (key, value) => {
-    onUpdate({ ...element, props: { ...element.props, [key]: value } });
+    const _overrides = element._overrides ? [...element._overrides] : [];
+    if (!_overrides.includes(key)) {
+      _overrides.push(key);
+    }
+    onUpdate({ ...element, props: { ...element.props, [key]: value }, _overrides });
   };
 
   const handleChangeMulti = (patch) => {
-    onUpdate({ ...element, props: { ...element.props, ...patch } });
+    const _overrides = element._overrides ? [...element._overrides] : [];
+    Object.keys(patch).forEach(key => {
+      if (!_overrides.includes(key)) {
+        _overrides.push(key);
+      }
+    });
+    onUpdate({ ...element, props: { ...element.props, ...patch }, _overrides });
   };
 
   const renderField = (field) => {

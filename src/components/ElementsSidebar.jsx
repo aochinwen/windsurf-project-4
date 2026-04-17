@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { CATEGORIES, ELEMENT_TEMPLATES } from '../data/elements';
 import ThumbnailPreview from './ElementThumbnail';
+import { THEME_LIST } from '../data/themes';
 
-export default function ElementsSidebar({ onAdd }) {
+export default function ElementsSidebar({ onAdd, activeTheme, onThemeChange }) {
   const [activeCategory, setActiveCategory] = useState('header');
 
   const templates = ELEMENT_TEMPLATES[activeCategory] || [];
@@ -12,10 +13,30 @@ export default function ElementsSidebar({ onAdd }) {
     <div className="flex h-full overflow-hidden">
       {/* Left: Dark category list */}
       <div
-        className="overflow-y-auto shrink-0"
+        className="overflow-y-auto shrink-0 flex flex-col"
         style={{ width: 168, background: '#1e2030' }}
       >
         <div className="px-4 pt-5 pb-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#6b7280' }}>
+            Themes
+          </p>
+        </div>
+        <div className="px-4 flex gap-2 flex-wrap mb-4">
+          {THEME_LIST.map((theme) => (
+            <button
+              key={theme.id}
+              onClick={() => onThemeChange(theme.id)}
+              className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
+              style={{
+                backgroundColor: theme.colorPreview,
+                borderColor: activeTheme === theme.id ? '#6366f1' : 'transparent',
+                boxShadow: activeTheme === theme.id ? '0 0 0 2px #1e2030' : 'none'
+              }}
+              title={theme.name}
+            />
+          ))}
+        </div>
+        <div className="px-4 pt-2 pb-2 border-t border-gray-700/50">
           <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#6b7280' }}>
             Components
           </p>

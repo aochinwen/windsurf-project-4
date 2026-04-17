@@ -7,6 +7,9 @@ import EmailMetaModal from './components/EmailMetaModal';
 import PreviewModal from './components/PreviewModal';
 import { downloadEml, downloadImageEml } from './utils/emlExporter';
 import { importEml } from './utils/emlImporter';
+import { THEMES } from './data/themes';
+import { applyThemeToElement } from './utils/themeHelper';
+
 import {
   clearSessionFromStorage,
   downloadSessionFile,
@@ -30,6 +33,8 @@ const defaultMeta = {
   cc: '',
   bcc: '',
   canvasWidth: '600',
+  backgroundColor: '#f4f4f5',
+  fontFamily: 'sans-serif',
 };
 
 function formatSavedAt(value) {
@@ -67,6 +72,7 @@ function App() {
   const [savedSessions, setSavedSessions] = useState([]);
   const [saveSessionName, setSaveSessionName] = useState('');
   const [autosaveStatus, setAutosaveStatus] = useState('Not saved yet');
+  const [activeTheme, setActiveTheme] = useState('light');
 
   const selectedElement = elements.find(e => e.id === selectedId) || null;
 
@@ -78,6 +84,9 @@ function App() {
     setElements(restoredSession.elements);
     setSelectedId(restoredSession.selectedId);
     setEmailMeta(restoredSession.emailMeta);
+    if (restoredSession.activeTheme) {
+      setActiveTheme(restoredSession.activeTheme);
+    }
     setLeftPanelCollapsed(restoredSession.leftPanelCollapsed);
     setRightPanelCollapsed(restoredSession.rightPanelCollapsed);
     nextId = restoredSession.nextId;
@@ -106,6 +115,7 @@ function App() {
       emailMeta,
       leftPanelCollapsed,
       rightPanelCollapsed,
+      activeTheme,
     }).then(savedSession => {
       if (!savedSession.ok) {
         setAutosaveStatus(savedSession.reason === 'quota-exceeded' ? 'Autosave failed: browser storage full' : 'Autosave failed');
@@ -119,10 +129,11 @@ function App() {
       });
       setAutosaveStatus(`Saved ${formatSavedAt(savedSession.session.savedAt)}`);
     });
-  }, [elements, selectedId, emailMeta, leftPanelCollapsed, rightPanelCollapsed, sessionRestored]);
+  }, [elements, selectedId, emailMeta, leftPanelCollapsed, rightPanelCollapsed, activeTheme, sessionRestored]);
 
   const handleAdd = useCallback((template) => {
-    const el = { ...template, id: `el-${nextId++}` };
+    let el = { ...template, id: `el-${nextId++}` };
+    el = applyThemeToElement(el, activeTheme);
     setElements(prev => {
       if (selectedId) {
         const idx = prev.findIndex(e => e.id === selectedId);
@@ -135,7 +146,20 @@ function App() {
       return [...prev, el];
     });
     setSelectedId(el.id);
-  }, [selectedId]);
+  }, [selectedId, activeTheme]);
+
+  const handleThemeChange = useCallback((themeId) => {
+    setActiveTheme(themeId);
+    const theme = THEMES[themeId];
+    if (theme) {
+      setEmailMeta(prev => ({
+        ...prev,
+        backgroundColor: theme.canvasBackground,
+        fontFamily: theme.fontFamily
+      }));
+      setElements(prev => prev.map(el => applyThemeToElement(el, themeId)));
+    }
+  }, []);
 
   const handleSelect = useCallback((id) => {
     setSelectedId(id);
@@ -252,6 +276,7 @@ function App() {
       emailMeta,
       leftPanelCollapsed,
       rightPanelCollapsed,
+      activeTheme,
     });
   };
 
@@ -266,6 +291,7 @@ function App() {
         emailMeta,
         leftPanelCollapsed,
         rightPanelCollapsed,
+        activeTheme,
       });
       setSaveSessionName(targetName);
       refreshSavedSessions();
@@ -477,7 +503,7 @@ function App() {
           style={{ width: leftPanelCollapsed ? 0 : 420 }}
         >
           <div className="flex h-full w-full flex-col">
-            <ElementsSidebar onAdd={handleAdd} />
+            <ElementsSidebar onAdd={handleAdd} activeTheme={activeTheme} onThemeChange={handleThemeChange} />
             {!leftPanelCollapsed && (
               <div className="border-t px-4 py-4" style={{ background: '#111827', borderColor: '#2a2d3e' }}>
                 <div className="flex items-center gap-2">

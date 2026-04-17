@@ -3,15 +3,15 @@ import { X, Mail } from 'lucide-react';
 
 export default function EmailMetaModal({ meta, onChange, onClose, onExport }) {
   const [exportMode, setExportMode] = useState('standard');
-  const field = (label, key, placeholder = '') => (
+  const field = (label, key, placeholder = '', type = 'text') => (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <input
-        type="text"
+        type={type}
         value={meta[key] || ''}
         onChange={e => onChange({ ...meta, [key]: e.target.value })}
         placeholder={placeholder}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        className={`w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${type === 'color' ? 'h-10 cursor-pointer p-1' : ''}`}
       />
     </div>
   );
@@ -40,6 +40,8 @@ export default function EmailMetaModal({ meta, onChange, onClose, onExport }) {
           {field('CC', 'cc', 'cc@example.com')}
           {field('BCC', 'bcc', 'bcc@example.com')}
           {field('Canvas Width (px)', 'canvasWidth', '600')}
+          {field('Canvas Background', 'backgroundColor', '#ffffff', 'color')}
+          {field('Global Font Family', 'fontFamily', 'sans-serif')}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
             <p className="text-xs text-amber-700">
               <strong>Tip:</strong> Open the exported .eml file directly in Outlook to compose and send it. The To/From/CC fields can be changed in Outlook before sending.

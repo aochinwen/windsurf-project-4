@@ -185,8 +185,14 @@ export default function Canvas({ elements, selectedId, onSelect, onReorder, onDe
       onClick={() => onSelect(null)}
     >
       <div
-        className="w-full bg-white shadow-md rounded-lg overflow-hidden transition-all duration-300"
-        style={{ maxWidth: emailMeta?.canvasWidth ? `${emailMeta.canvasWidth}px` : '600px', minHeight: 100, margin: '0 auto' }}
+        className="w-full shadow-md rounded-lg overflow-hidden transition-all duration-300"
+        style={{
+          maxWidth: emailMeta?.canvasWidth ? `${emailMeta.canvasWidth}px` : '600px',
+          minHeight: 100,
+          margin: '0 auto',
+          backgroundColor: emailMeta?.backgroundColor || '#ffffff',
+          fontFamily: emailMeta?.fontFamily || 'sans-serif'
+        }}
       >
         <DndContext
           sensors={sensors}

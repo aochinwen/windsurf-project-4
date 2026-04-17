@@ -32,7 +32,7 @@ function SortableElement({ element, isSelected, onSelect, onDelete, onDuplicate,
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const html = useMemo(() => renderElementHtmlWithPostProcessing(element), [element]);
+  const html = renderElementHtmlWithPostProcessing(element);
 
   return (
     <div

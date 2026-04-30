@@ -6,6 +6,7 @@ import PropertyPanel from './components/PropertyPanel';
 import EmailMetaModal from './components/EmailMetaModal';
 import GlobalSettingsModal from './components/GlobalSettingsModal';
 import PreviewModal from './components/PreviewModal';
+import LoadingOverlay from './components/LoadingOverlay';
 import { downloadEml, downloadImageEml } from './utils/emlExporter';
 import { importEml } from './utils/emlImporter';
 import { THEMES } from './data/themes';
@@ -75,6 +76,7 @@ function App({ user = null, onSignOut = null, cloudEnabled = false }) {
   const [activeTheme, setActiveTheme] = useState('light');
   const [showGlobalSettings, setShowGlobalSettings] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cloudBusy, setCloudBusy] = useState(null);
 
   const selectedElement = elements.find(e => e.id === selectedId) || null;
 
@@ -113,29 +115,34 @@ function App({ user = null, onSignOut = null, cloudEnabled = false }) {
     refreshSavedSessions();
   }, [user?.id, refreshSavedSessions]);
 
+  // Debounced local autosave: wait for the user to pause before serializing/writing.
   useEffect(() => {
     if (!sessionRestored) return;
 
-    saveSessionToStorage({
-      elements,
-      selectedId,
-      emailMeta,
-      leftPanelCollapsed,
-      rightPanelCollapsed,
-      activeTheme,
-    }).then(savedSession => {
-      if (!savedSession.ok) {
-        setAutosaveStatus(savedSession.reason === 'quota-exceeded' ? 'Autosave failed: browser storage full' : 'Autosave failed');
-        return;
-      }
+    const handle = setTimeout(() => {
+      saveSessionToStorage({
+        elements,
+        selectedId,
+        emailMeta,
+        leftPanelCollapsed,
+        rightPanelCollapsed,
+        activeTheme,
+      }).then(savedSession => {
+        if (!savedSession.ok) {
+          setAutosaveStatus(savedSession.reason === 'quota-exceeded' ? 'Autosave failed: browser storage full' : 'Autosave failed');
+          return;
+        }
 
-      setDraftSummary({
-        subject: savedSession.session.emailMeta.subject || 'Untitled Email',
-        elementCount: savedSession.session.elements.length,
-        savedAt: savedSession.session.savedAt,
+        setDraftSummary({
+          subject: savedSession.session.emailMeta.subject || 'Untitled Email',
+          elementCount: savedSession.session.elements.length,
+          savedAt: savedSession.session.savedAt,
+        });
+        setAutosaveStatus(`Saved ${formatSavedAt(savedSession.session.savedAt)}`);
       });
-      setAutosaveStatus(`Saved ${formatSavedAt(savedSession.session.savedAt)}`);
-    });
+    }, 600);
+
+    return () => clearTimeout(handle);
   }, [elements, selectedId, emailMeta, leftPanelCollapsed, rightPanelCollapsed, activeTheme, sessionRestored]);
 
   const handleAdd = useCallback((template, insertIndex = null) => {
@@ -313,8 +320,9 @@ function App({ user = null, onSignOut = null, cloudEnabled = false }) {
     const fallbackName = emailMeta.subject?.trim() || `Session ${new Date().toLocaleString()}`;
     const targetName = saveSessionName.trim() || fallbackName;
 
+    setCloudBusy(cloudEnabled ? `Saving "${targetName}"…` : `Saving "${targetName}"…`);
     try {
-      await saveNamedSession(targetName, {
+      const saved = await saveNamedSession(targetName, {
         elements,
         selectedId,
         emailMeta,
@@ -323,26 +331,50 @@ function App({ user = null, onSignOut = null, cloudEnabled = false }) {
         activeTheme,
       });
       setSaveSessionName(targetName);
-      refreshSavedSessions();
+      // Optimistically update the local list (avoids a second round trip).
+      setSavedSessions(prev => {
+        const summary = {
+          id: saved.id,
+          name: saved.name,
+          savedAt: saved.savedAt,
+          subject: saved.subject || saved.session?.emailMeta?.subject || 'Untitled Email',
+          elementCount: saved.elementCount ?? saved.session?.elements?.length ?? 0,
+        };
+        const without = prev.filter(entry => entry.id !== summary.id);
+        return [summary, ...without];
+      });
       setAutosaveStatus(`Saved session "${targetName}"`);
     } catch {
       window.alert('Unable to save this named session.');
+    } finally {
+      setCloudBusy(null);
     }
   };
 
   const handleLoadNamedSession = async (id) => {
+    setCloudBusy('Loading session…');
     try {
       const restoredSession = await loadNamedSession(id);
       applyRestoredSession(restoredSession);
       setAutosaveStatus('Loaded saved session');
     } catch {
       window.alert('Unable to load that saved session.');
+    } finally {
+      setCloudBusy(null);
     }
   };
 
   const handleDeleteNamedSession = async (id) => {
-    await deleteNamedSession(id);
-    refreshSavedSessions();
+    setCloudBusy('Deleting session…');
+    try {
+      await deleteNamedSession(id);
+      // Optimistic local update; skip the extra list fetch.
+      setSavedSessions(prev => prev.filter(entry => entry.id !== id));
+    } catch {
+      window.alert('Unable to delete this session.');
+    } finally {
+      setCloudBusy(null);
+    }
   };
 
   const handleExport = async (mode = 'standard', options = {}) => {
@@ -749,6 +781,9 @@ function App({ user = null, onSignOut = null, cloudEnabled = false }) {
           onClose={() => setShowPreview(false)}
         />
       )}
+
+      {/* Cloud-op loading scrim */}
+      {cloudBusy && <LoadingOverlay message={cloudBusy} />}
     </div>
   );
 }

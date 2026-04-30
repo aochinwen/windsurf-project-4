@@ -4,10 +4,27 @@ const SESSION_STORAGE_KEY = 'eml-editor-session';
 const NAMED_SESSIONS_STORAGE_KEY = 'eml-editor-named-sessions';
 const SESSION_VERSION = 1;
 
+let cachedUserId = null;
+let cachedUserIdPromise = null;
+
 async function getCurrentUserId() {
   if (!isCloudEnabled()) return null;
-  const { data } = await supabase.auth.getSession();
-  return data?.session?.user?.id || null;
+  if (cachedUserId) return cachedUserId;
+  if (cachedUserIdPromise) return cachedUserIdPromise;
+
+  cachedUserIdPromise = supabase.auth.getSession().then(({ data }) => {
+    cachedUserId = data?.session?.user?.id || null;
+    cachedUserIdPromise = null;
+    return cachedUserId;
+  });
+  return cachedUserIdPromise;
+}
+
+if (isCloudEnabled()) {
+  supabase.auth.onAuthStateChange((_event, session) => {
+    cachedUserId = session?.user?.id || null;
+    cachedUserIdPromise = null;
+  });
 }
 
 const DB_NAME = 'eml-editor-db';
@@ -273,11 +290,18 @@ export async function saveNamedSession(name, state) {
     const { data, error } = await supabase
       .from('sessions')
       .upsert(payload, { onConflict: 'user_id,name' })
-      .select('id, name, updated_at')
+      .select('id, name, subject, element_count, updated_at')
       .single();
 
     if (error) throw error;
-    return { id: data.id, name: data.name, savedAt: data.updated_at, session };
+    return {
+      id: data.id,
+      name: data.name,
+      savedAt: data.updated_at,
+      subject: data.subject || 'Untitled Email',
+      elementCount: data.element_count || 0,
+      session,
+    };
   }
 
   const sessions = await getRawNamedSessions();

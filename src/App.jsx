@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Eye, Download, RotateCcw, Mail, ChevronLeft, ChevronRight, Upload, Save, FolderOpen, Trash2, Settings, Menu, FileJson, FileText, FilePlus } from 'lucide-react';
+import { Eye, Download, RotateCcw, Mail, ChevronLeft, ChevronRight, Upload, Save, FolderOpen, Trash2, Settings, Menu, FileJson, FileText, FilePlus, LogOut, Cloud, CloudOff } from 'lucide-react';
 import ElementsSidebar from './components/ElementsSidebar';
 import Canvas from './components/Canvas';
 import PropertyPanel from './components/PropertyPanel';
@@ -55,7 +55,7 @@ function formatSavedAt(value) {
   return `${diffDays}d ago`;
 }
 
-function App() {
+function App({ user = null, onSignOut = null, cloudEnabled = false }) {
   const emlInputRef = useRef(null);
   const sessionInputRef = useRef(null);
   const [elements, setElements] = useState([]);
@@ -107,6 +107,11 @@ function App() {
       setSessionRestored(true);
     });
   }, [refreshSavedSessions]);
+
+  // Refresh saved sessions whenever the authenticated user changes (sign in/out).
+  useEffect(() => {
+    refreshSavedSessions();
+  }, [user?.id, refreshSavedSessions]);
 
   useEffect(() => {
     if (!sessionRestored) return;
@@ -340,12 +345,12 @@ function App() {
     refreshSavedSessions();
   };
 
-  const handleExport = async (mode = 'standard') => {
+  const handleExport = async (mode = 'standard', options = {}) => {
     setShowExportModal(false);
     setExporting(true);
     try {
       if (mode === 'image') {
-        await downloadImageEml(elements, emailMeta);
+        await downloadImageEml(elements, emailMeta, options);
       } else {
         await downloadEml(elements, emailMeta);
       }
@@ -384,7 +389,13 @@ function App() {
           </div>
           <div>
             <h1 className="font-bold text-white text-sm leading-tight">EML Editor</h1>
-            <p className="text-[10px]" style={{ color: '#6b7280' }}>Email builder for Outlook</p>
+            <p className="text-[10px] flex items-center gap-1" style={{ color: '#6b7280' }}>
+              {cloudEnabled ? (
+                <><Cloud size={9} /> {user ? user.email : 'Local mode'}</>
+              ) : (
+                <><CloudOff size={9} /> Local mode</>
+              )}
+            </p>
           </div>
         </div>
 
@@ -508,6 +519,16 @@ function App() {
               </>
             )}
           </div>
+          {user && onSignOut && (
+            <button
+              onClick={onSignOut}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg border transition-colors"
+              style={{ border: '1px solid #3d4060', color: '#cbd5e1', background: 'transparent' }}
+              title={`Sign out ${user.email}`}
+            >
+              <LogOut size={12} /> Sign out
+            </button>
+          )}
           <button
             onClick={handleClear}
             disabled={elements.length === 0}

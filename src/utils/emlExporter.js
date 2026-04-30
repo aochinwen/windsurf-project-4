@@ -182,7 +182,11 @@ export async function downloadEml(elements, emailMeta) {
   URL.revokeObjectURL(url);
 }
 
-export async function downloadImageEml(elements, emailMeta) {
+export async function downloadImageEml(elements, emailMeta, options = {}) {
+  // scale: 0.5 - 1.0 controls output image pixel density (100% = retina 2x, 50% = 1x)
+  const rawScale = typeof options.scale === 'number' ? options.scale : 1;
+  const scale = Math.min(1, Math.max(0.5, rawScale));
+  const pixelRatio = 2 * scale;
   let toPng;
   try {
     const htmlToImage = await import('html-to-image');
@@ -246,7 +250,7 @@ export async function downloadImageEml(elements, emailMeta) {
 
     try {
       const dataUrl = await toPng(container, { 
-        pixelRatio: 2,
+        pixelRatio,
         skipFonts: true,
         fontEmbedCSS: '', 
         backgroundColor: emailMeta?.backgroundColor || '#ffffff',

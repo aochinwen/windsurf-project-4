@@ -256,6 +256,67 @@ windsurf-project-4/
 
 ---
 
+## Deployment (Vercel + Supabase)
+
+This project is configured to deploy to **Vercel** with **Supabase** as the cloud database for named sessions.
+
+### 1. Supabase setup
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. In the SQL editor, run the migration that creates the `sessions` table with Row-Level Security (see `supabase/migrations` or the SQL below).
+3. From **Project Settings → API**, copy:
+   - `Project URL` → `VITE_SUPABASE_URL`
+   - `anon` / `publishable` key → `VITE_SUPABASE_ANON_KEY`
+
+The required SQL (already applied if you used the MCP setup):
+
+```sql
+create table public.sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  document jsonb not null,
+  subject text,
+  element_count int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index sessions_user_name_unique on public.sessions (user_id, lower(name));
+alter table public.sessions enable row level security;
+create policy "sessions_select_own" on public.sessions for select using (auth.uid() = user_id);
+create policy "sessions_insert_own" on public.sessions for insert with check (auth.uid() = user_id);
+create policy "sessions_update_own" on public.sessions for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "sessions_delete_own" on public.sessions for delete using (auth.uid() = user_id);
+```
+
+### 2. Local development
+
+Copy `.env.example` to `.env.local` and fill in your Supabase credentials:
+
+```bash
+cp .env.example .env.local
+```
+
+If env vars are missing, the app falls back to **local-only mode** (IndexedDB), so the editor still works offline.
+
+### 3. Deploy to Vercel
+
+1. Push this repo to GitHub.
+2. Import it at [vercel.com/new](https://vercel.com/new). Vercel auto-detects Vite via `vercel.json`.
+3. In **Project Settings → Environment Variables**, add:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. Deploy. The SPA rewrite in `vercel.json` ensures client-side routing works.
+
+### Auth & data model
+
+- **Authentication**: Email/password via Supabase Auth (see `src/components/AuthGate.jsx`).
+- **Named sessions**: Stored in Supabase Postgres (`sessions` table) when signed in; fall back to IndexedDB when not signed in or when env vars are missing.
+- **Autosaved drafts**: Always stored locally in IndexedDB (per-device).
+- **RLS**: Each user can only read/write their own rows.
+
+---
+
 ## Browser Compatibility
 
 - Chrome 90+

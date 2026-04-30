@@ -3,6 +3,7 @@ import { X, Mail } from 'lucide-react';
 
 export default function EmailMetaModal({ meta, onChange, onClose, onExport }) {
   const [exportMode, setExportMode] = useState('standard');
+  const [imageScale, setImageScale] = useState(1);
   const field = (label, key, placeholder = '') => (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -73,9 +74,29 @@ export default function EmailMetaModal({ meta, onChange, onClose, onExport }) {
               </label>
             </div>
             {exportMode === 'image' && (
-              <p className="mt-2 text-xs text-indigo-600">
-                Converts your design into seamlessly stacked images, guaranteeing perfect visual compatibility in all email clients.
-              </p>
+              <>
+                <p className="mt-2 text-xs text-indigo-600">
+                  Converts your design into seamlessly stacked images, guaranteeing perfect visual compatibility in all email clients.
+                </p>
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium text-gray-700">Image Scale</label>
+                    <span className="text-xs text-gray-500 tabular-nums">{Math.round(imageScale * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="100"
+                    step="5"
+                    value={Math.round(imageScale * 100)}
+                    onChange={e => setImageScale(Number(e.target.value) / 100)}
+                    className="w-full accent-indigo-600"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">
+                    Lower scale reduces file size (50% = standard DPI, 100% = retina).
+                  </p>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -87,7 +108,7 @@ export default function EmailMetaModal({ meta, onChange, onClose, onExport }) {
             Cancel
           </button>
           <button
-            onClick={() => onExport(exportMode)}
+            onClick={() => onExport(exportMode, { scale: imageScale })}
             className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
           >
             Download .eml

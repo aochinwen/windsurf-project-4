@@ -28,6 +28,16 @@ function renderTags(props, defaultAlign = 'left', marginBottom = '12px') {
   return `<div style="text-align:${align}; margin-bottom:${marginBottom};">\n${tagsToRender.map(t => `  <span style="display:inline-block;background:${t.color || '#6366f1'};color:#fff;font-size:11px;padding:3px 10px;border-radius:999px;font-family:sans-serif;margin:0 4px 4px 0">${t.text}</span>`).join('\n')}\n</div>`;
 }
 
+function applyNl2br(props = {}) {
+  const next = { ...props };
+  Object.keys(next).forEach(k => {
+    if (typeof next[k] === 'string' && next[k].includes('\n')) {
+      next[k] = next[k].replace(/\n/g, '<br>');
+    }
+  });
+  return next;
+}
+
 function resolveHiddenProps(rawProps = {}) {
   const next = { ...rawProps };
   Object.keys(rawProps).forEach((k) => {
@@ -130,7 +140,7 @@ function getSplitColumnWidths(primaryWidth, fallbackPrimary = '42%', fallbackSec
 
 export function renderElementHtml(element) {
   const { type, props: rawProps } = element;
-  const props = resolveHiddenProps(rawProps);
+  const props = applyNl2br(resolveHiddenProps(rawProps));
 
   switch (type) {
     case 'header-logo-center':

@@ -88,7 +88,7 @@ function Textarea({ value, onChange, rows = 3 }) {
       onChange={e => setLocalVal(e.target.value)}
       onBlur={() => { lastPropagated.current = localVal; onChange(localVal); }}
       rows={rows}
-      className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+      className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-y min-h-[2.5rem]"
     />
   );
 }
@@ -252,7 +252,7 @@ function RichTextInput({ fieldKey, props, onChangeMulti, rows = 3 }) {
           fontStyle:  italic ? 'italic' : 'normal',
           textDecoration: [underline && 'underline', strike && 'line-through'].filter(Boolean).join(' ') || 'none',
         }}
-        className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+        className="w-full border border-gray-200 rounded-md px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-y min-h-[2.5rem]"
       />
     </div>
   );

@@ -1,6 +1,14 @@
+import { supabase, isCloudEnabled } from '../lib/supabase';
+
 const SESSION_STORAGE_KEY = 'eml-editor-session';
 const NAMED_SESSIONS_STORAGE_KEY = 'eml-editor-named-sessions';
 const SESSION_VERSION = 1;
+
+async function getCurrentUserId() {
+  if (!isCloudEnabled()) return null;
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.user?.id || null;
+}
 
 const DB_NAME = 'eml-editor-db';
 const DB_VERSION = 1;
@@ -210,6 +218,27 @@ async function setRawNamedSessions(sessions) {
 }
 
 export async function listNamedSessions() {
+  const userId = await getCurrentUserId();
+  if (userId) {
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('id, name, subject, element_count, updated_at')
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to list cloud sessions:', error);
+      return [];
+    }
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      savedAt: row.updated_at,
+      subject: row.subject || 'Untitled Email',
+      elementCount: row.element_count || 0,
+    }));
+  }
+
   const sessions = await getRawNamedSessions();
   return sessions
     .filter((entry) => entry && typeof entry === 'object' && entry.id && entry.name && entry.session)
@@ -230,6 +259,27 @@ export async function saveNamedSession(name, state) {
   }
 
   const session = buildEditorSession(state);
+  const userId = await getCurrentUserId();
+
+  if (userId) {
+    const payload = {
+      user_id: userId,
+      name: trimmedName,
+      document: session,
+      subject: session.emailMeta?.subject || null,
+      element_count: session.elements.length,
+    };
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .upsert(payload, { onConflict: 'user_id,name' })
+      .select('id, name, updated_at')
+      .single();
+
+    if (error) throw error;
+    return { id: data.id, name: data.name, savedAt: data.updated_at, session };
+  }
+
   const sessions = await getRawNamedSessions();
   const existing = sessions.find((entry) => entry.name.toLowerCase() === trimmedName.toLowerCase());
   const nextEntry = {
@@ -248,6 +298,20 @@ export async function saveNamedSession(name, state) {
 }
 
 export async function loadNamedSession(id) {
+  const userId = await getCurrentUserId();
+  if (userId) {
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('document')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) {
+      throw new Error('Saved session not found.');
+    }
+    return restoreEditorSession(data.document);
+  }
+
   const sessions = await getRawNamedSessions();
   const session = sessions.find((entry) => entry.id === id);
   if (!session) {
@@ -257,6 +321,13 @@ export async function loadNamedSession(id) {
 }
 
 export async function deleteNamedSession(id) {
+  const userId = await getCurrentUserId();
+  if (userId) {
+    const { error } = await supabase.from('sessions').delete().eq('id', id);
+    if (error) throw error;
+    return;
+  }
+
   const sessions = await getRawNamedSessions();
   await setRawNamedSessions(sessions.filter((entry) => entry.id !== id));
 }
